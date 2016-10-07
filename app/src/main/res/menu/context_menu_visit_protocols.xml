@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/show_goats_for_farm"
+        android:title="@string/text_show_goats_from_book" />
+    <item android:id="@+id/show_goats_lists"
+        android:title="@string/text_show_goats_lists"/>
+    <item android:id="@+id/sync_goats"
+        android:title="@string/text_sync_goats"/>
+
+</menu>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="?android:attr/activatedBackgroundIndicator">
+
+    <TextView
+        android:id="@+id/text_visit_protocol_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:paddingLeft="10dp"/>
+
+    <TextView
+        android:id="@+id/text_visit_protocol_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:paddingLeft="10dp"/>
+
+    <TextView
+        android:id="@+id/text_company_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:paddingLeft="10dp"/>
+
+    <TextView
+        android:id="@+id/text_user_1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:paddingLeft="10dp"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/text_user_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:paddingLeft="10dp"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/text_visit_protocol_last_updated"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:paddingLeft="10dp"/>
+
+    <TextView
+        android:id="@+id/textVisitActivities"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:paddingLeft="10dp"
+        android:visibility="gone"/>
+
+</LinearLayout>

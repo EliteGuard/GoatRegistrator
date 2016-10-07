@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    package="com.armpk.goatregistrator"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <!-- To auto-complete the email text field in the login form with the user's emails -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_PROFILE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+        <activity android:name=".activities.MainEntryActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".activities.MainMenuActivity" />
+        <activity android:name=".activities.SecondaryMenuActivity" />
+        <activity
+            android:name=".activities.UserAddActivity"
+            android:label="@string/text_add_user" />
+        <activity android:name=".activities.GoatAddChoiceActivity" />
+        <activity
+            android:name=".activities.GoatAddReaderActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.GoatAddManuallyActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activities.FarmAddActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activities.LoginActivity"
+            android:label="@string/title_activity_login" />
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:label="@string/text_settings" />
+        <activity
+            android:name=".activities.CityAddActivity"
+            android:label="@string/text_add_city_village" />
+        <activity
+            android:name=".activities.VisitProtocolsAddActivity"
+            android:label="@string/text_add_visit_protocol" />
+        <activity
+            android:name=".activities.GoatSearchActivity"
+            android:label="@string/text_search_goat"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable_goat" />
+        </activity>
+        <activity
+            android:name=".activities.UserSearchActivity"
+            android:label="@string/text_search_user"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable_user" />
+        </activity>
+        <activity
+            android:name=".activities.FarmSearchActivity"
+            android:label="@string/text_search_company"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable_farm" />
+        </activity>
+        <activity
+            android:name=".activities.VisitProtocolSearchActivity"
+            android:label="@string/text_search_visit_protocol"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable_visit_protocol" />
+        </activity>
+        <activity android:name=".activities.VisitProtocolsActivity" />
+        <activity android:name=".activities.VisitProtocolsNotSyncedActivity" />
+        <activity
+            android:name=".activities.VisitProtocolGoatsListsActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".activities.GoatsListsFromBookActivity"
+            android:screenOrientation="landscape" />
+        <activity android:name=".activities.WebPrintActivity" />
+    </application>
+
+</manifest>

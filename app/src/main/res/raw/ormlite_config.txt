@@ -1,0 +1,1097 @@
+#
+# generated on 2016/08/30 11:50:29
+#
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.Address
+tableName=Address
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=addressTitle
+# --field-end--
+# --field-start--
+fieldName=city
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=region
+# --field-end--
+# --field-start--
+fieldName=street
+# --field-end--
+# --field-start--
+fieldName=postcode
+# --field-end--
+# --field-start--
+fieldName=email
+# --field-end--
+# --field-start--
+fieldName=notes
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.Breed
+tableName=Breed
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=breedName
+# --field-end--
+# --field-start--
+fieldName=codeName
+# --field-end--
+# --field-start--
+fieldName=description
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.City
+tableName=City
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=name
+# --field-end--
+# --field-start--
+fieldName=locationType
+# --field-end--
+# --field-start--
+fieldName=area
+# --field-end--
+# --field-start--
+fieldName=municipality
+# --field-end--
+# --field-start--
+fieldName=regionalCenter
+# --field-end--
+# --field-start--
+fieldName=postcode
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=latitude
+# --field-end--
+# --field-start--
+fieldName=longitude
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.ExteriorMark
+tableName=ExteriorMark
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=type
+# --field-end--
+# --field-start--
+fieldName=defectGroup
+# --field-end--
+# --field-start--
+fieldName=name
+# --field-end--
+# --field-start--
+fieldName=codeName
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.Farm
+tableName=Farm
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=companyName
+# --field-end--
+# --field-start--
+fieldName=mol
+# --field-end--
+# --field-start--
+fieldName=eik
+# --field-end--
+# --field-start--
+fieldName=bulstat
+# --field-end--
+# --field-start--
+fieldName=herdbookVolumeNumber
+# --field-end--
+# --field-start--
+fieldName=lst_contactPhones
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
+fieldName=farmer
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=managementAddress
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=corespondenceAddress
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=breedingPlaceAddress
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=breedingPlaceNumber
+# --field-end--
+# --field-start--
+fieldName=lst_visitProtocol
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.FarmGoat
+tableName=FarmGoat
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=farm
+foreign=true
+# --field-end--
+# --field-start--
+fieldName=goat
+foreign=true
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.FarmHerd
+tableName=FarmHerd
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=farm
+foreign=true
+# --field-end--
+# --field-start--
+fieldName=herd
+foreign=true
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.FertilityState
+tableName=FertilityState
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=stateType
+# --field-end--
+# --field-start--
+fieldName=dateOfState
+# --field-end--
+# --field-start--
+fieldName=notes
+# --field-end--
+# --field-start--
+fieldName=goat
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=generationNumber
+# --field-end--
+# --field-start--
+fieldName=conceptionType
+# --field-end--
+# --field-start--
+fieldName=matedByBuck
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=matedByBuckNumber
+# --field-end--
+# --field-start--
+fieldName=dateDelivery
+# --field-end--
+# --field-start--
+fieldName=lst_kids
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.Goat
+tableName=Goat
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=sex
+# --field-end--
+# --field-start--
+fieldName=breed
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=maturity
+# --field-end--
+# --field-start--
+fieldName=status
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=herd
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=birthPlace
+# --field-end--
+# --field-start--
+fieldName=birthDate
+# --field-end--
+# --field-start--
+fieldName=color
+# --field-end--
+# --field-start--
+fieldName=notes
+# --field-end--
+# --field-start--
+fieldName=herbookEntryNumber
+# --field-end--
+# --field-start--
+fieldName=herbookSection
+# --field-end--
+# --field-start--
+fieldName=herbookVolumeNumber
+# --field-end--
+# --field-start--
+fieldName=firstVeterinaryNumber
+indexName=Goat_firstVeterinaryNumber_idx
+# --field-end--
+# --field-start--
+fieldName=secondVeterinaryNumber
+indexName=Goat_secondVeterinaryNumber_idx
+# --field-end--
+# --field-start--
+fieldName=thirdVeterinaryNumber
+indexName=Goat_thirdVeterinaryNumber_idx
+# --field-end--
+# --field-start--
+fieldName=firstBreedingNumber
+indexName=Goat_firstBreedingNumber_idx
+# --field-end--
+# --field-start--
+fieldName=secondBreedingNumber
+indexName=Goat_secondBreedingNumber_idx
+# --field-end--
+# --field-start--
+fieldName=thirdBreedingNumber
+indexName=Goat_thirdBreedingNumber_idx
+# --field-end--
+# --field-start--
+fieldName=mother
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=father
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=motherNumber
+# --field-end--
+# --field-start--
+fieldName=fatherNumber
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=lastModifiedBy
+# --field-end--
+# --field-start--
+fieldName=lst_goatMeasurements
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
+fieldName=lst_goatExteriorMarks
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
+fieldName=lst_lactations
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
+fieldName=lst_milkControls
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
+fieldName=lst_fertilityStates
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
+fieldName=kidFromPregnancy
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=goatKidPurpose
+# --field-end--
+# --field-start--
+fieldName=weightAtBirth
+# --field-end--
+# --field-start--
+fieldName=weightAtWeaning
+# --field-end--
+# --field-start--
+fieldName=dateWeaning
+# --field-end--
+# --field-start--
+fieldName=numberInCertificate
+# --field-end--
+# --field-start--
+fieldName=certificateNumber
+# --field-end--
+# --field-start--
+fieldName=numberInWastageProtocol
+# --field-end--
+# --field-start--
+fieldName=wastageProtocolNumber
+# --field-end--
+# --field-start--
+fieldName=dateDeregistered
+# --field-end--
+# --field-start--
+fieldName=appliedForSelectionControlYear
+# --field-end--
+# --field-start--
+fieldName=inclusionStatusYear
+# --field-end--
+# --field-start--
+fieldName=inclusionStatusString
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.GoatExteriorMark
+tableName=GoatExteriorMark
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=goat
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=exteriorMark
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.GoatFromVetIs
+tableName=GoatFromVetIs
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=firstVeterinaryNumber
+indexName=GoatFromVetIs_firstVeterinaryNumber_idx
+# --field-end--
+# --field-start--
+fieldName=secondVeterinaryNumber
+indexName=GoatFromVetIs_secondVeterinaryNumber_idx
+# --field-end--
+# --field-start--
+fieldName=sex
+# --field-end--
+# --field-start--
+fieldName=breed
+# --field-end--
+# --field-start--
+fieldName=ownerName
+# --field-end--
+# --field-start--
+fieldName=ownerNameShort
+# --field-end--
+# --field-start--
+fieldName=inOezFrom
+# --field-end--
+# --field-start--
+fieldName=inOezTo
+# --field-end--
+# --field-start--
+fieldName=birthDate
+# --field-end--
+# --field-start--
+fieldName=deathDate
+# --field-end--
+# --field-start--
+fieldName=condition
+# --field-end--
+# --field-start--
+fieldName=selectionControl
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastModified
+# --field-end--
+# --field-start--
+fieldName=lastModifiedBy
+# --field-end--
+# --field-start--
+fieldName=area
+# --field-end--
+# --field-start--
+fieldName=municipality
+# --field-end--
+# --field-start--
+fieldName=farmID
+# --field-end--
+# --field-start--
+fieldName=companyName
+# --field-end--
+# --field-start--
+fieldName=breedingPlaceNumber
+# --field-end--
+# --field-start--
+fieldName=importedFileByFarm
+# --field-end--
+# --field-start--
+fieldName=importedFileByArea
+# --field-end--
+# --field-start--
+fieldName=rowNumberFarmFile
+# --field-end--
+# --field-start--
+fieldName=rowNumberAreaFile
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.GoatMeasurement
+tableName=GoatMeasurement
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=goat
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=measurement
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=value
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.GoatStatus
+tableName=GoatStatus
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=statusName
+# --field-end--
+# --field-start--
+fieldName=codeName
+# --field-end--
+# --field-start--
+fieldName=description
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.Herd
+tableName=Herd
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=herdNumber
+# --field-end--
+# --field-start--
+fieldName=lst_goats
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
+fieldName=description
+# --field-end--
+# --field-start--
+fieldName=latitude
+# --field-end--
+# --field-start--
+fieldName=longitude
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.Lactation
+tableName=Lactation
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=lactationNumber
+# --field-end--
+# --field-start--
+fieldName=startDate
+# --field-end--
+# --field-start--
+fieldName=goat
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=lst_milkControls
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.Measurement
+tableName=Measurement
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=type
+# --field-end--
+# --field-start--
+fieldName=name
+# --field-end--
+# --field-start--
+fieldName=codeName
+# --field-end--
+# --field-start--
+fieldName=minValue
+# --field-end--
+# --field-start--
+fieldName=maxValue
+# --field-end--
+# --field-start--
+fieldName=allowedValues
+# --field-end--
+# --field-start--
+fieldName=photoName
+# --field-end--
+# --field-start--
+fieldName=photo
+dataPersister=SERIALIZABLE
+# --field-end--
+# --field-start--
+fieldName=description
+# --field-end--
+# --field-start--
+fieldName=sortOrder
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.MilkControl
+tableName=MilkControl
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=type
+# --field-end--
+# --field-start--
+fieldName=dateControl
+# --field-end--
+# --field-start--
+fieldName=dayPart
+# --field-end--
+# --field-start--
+fieldName=quantityMilked
+# --field-end--
+# --field-start--
+fieldName=goat
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=lactation
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=visitProtocol
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.Phone
+tableName=Phone
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=phoneNumber
+# --field-end--
+# --field-start--
+fieldName=contactPerson
+# --field-end--
+# --field-start--
+fieldName=email
+# --field-end--
+# --field-start--
+fieldName=notes
+# --field-end--
+# --field-start--
+fieldName=farm
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.User
+tableName=User
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=username
+# --field-end--
+# --field-start--
+fieldName=password
+# --field-end--
+# --field-start--
+fieldName=userRole
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+foreignAutoCreate=true
+# --field-end--
+# --field-start--
+fieldName=activeStatus
+# --field-end--
+# --field-start--
+fieldName=firstName
+# --field-end--
+# --field-start--
+fieldName=surName
+# --field-end--
+# --field-start--
+fieldName=familyName
+# --field-end--
+# --field-start--
+fieldName=city
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=email
+# --field-end--
+# --field-start--
+fieldName=phone
+# --field-end--
+# --field-start--
+fieldName=dateRegistered
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.UserRole
+tableName=UserRole
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=displayName
+# --field-end--
+# --field-start--
+fieldName=codeName
+# --field-end--
+# --field-start--
+fieldName=description
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.VisitActivity
+tableName=VisitActivity
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=codeName
+# --field-end--
+# --field-start--
+fieldName=name
+# --field-end--
+# --field-start--
+fieldName=description
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+foreignAutoCreate=true
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.VisitProtocol
+tableName=VisitProtocol
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=farm
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=visitDate
+# --field-end--
+# --field-start--
+fieldName=notes
+# --field-end--
+# --field-start--
+fieldName=employFirst
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+foreignAutoCreate=true
+# --field-end--
+# --field-start--
+fieldName=employSecond
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+foreignAutoCreate=true
+# --field-end--
+# --field-start--
+fieldName=dateAddedToSystem
+# --field-end--
+# --field-start--
+fieldName=dateLastUpdated
+# --field-end--
+# --field-start--
+fieldName=lastUpdatedByUser
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.armpk.goatregistrator.database.VisitProtocolVisitActivity
+tableName=VisitProtocolVisitActivity
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=visitProtocol
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=visitActivity
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################

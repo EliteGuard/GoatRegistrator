@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.armpk.goatregistrator.activities.FarmSearchActivity">
+
+    <TextView
+        android:id="@+id/text_last_sync"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/text_last_sync_from_sc"
+        android:textSize="16sp"
+        android:gravity="left|center_vertical"
+        android:padding="5sp"/>
+
+    <ListView
+        android:id="@+id/list_results"
+        android:layout_below="@id/text_last_sync"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"/>
+</RelativeLayout>
