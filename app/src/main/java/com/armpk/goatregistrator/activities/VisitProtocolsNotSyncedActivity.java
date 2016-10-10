@@ -32,6 +32,7 @@ import org.json.JSONObject;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -132,6 +133,17 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                     String keyGoats = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
                     Set<String> pg = mSharedPreferences.getStringSet(keyGoats, new HashSet<String>());
                     JSONArray localGoats = new JSONArray();
+
+                    String pid = String.valueOf(vp.getFarm().getId());
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(vp.getVisitDate());
+                    if(cal.get(Calendar.DAY_OF_MONTH) < 10) pid += "0";
+                    pid += cal.get(Calendar.DAY_OF_MONTH);
+                    if(cal.get(Calendar.MONTH)+1 < 10) pid += "0";
+                    pid += (cal.get(Calendar.MONTH)+1);
+                    pid += (cal.get(Calendar.YEAR)-2000);
+                    int goatCounter = 0;
+
                     for(String sg : pg) {
                         JSONObject goatO = new JSONObject(sg);
 
@@ -149,9 +161,16 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                         JSONArray farmsA = new JSONArray();
                         key.append("_farm");
                         farmsA.put(
-                                mSharedPreferences.getString(key.toString(),
-                                Globals.objectToJson(vp.getFarm()).toString()));
+                                mSharedPreferences.getString(
+                                        key.toString(),
+                                        Globals.objectToJson(vp.getFarm()).toString()));
                         goatO.put("lst_farms", farmsA);
+                        if(keygoat.getId()!=null) goatO.put("condition", "old");
+                        else goatO.put("condition", "new");
+
+                        String asd = pid + goatCounter;
+                        goatO.put("processed_id", pid+goatCounter);
+                        goatCounter++;
 
                         localGoats.put(goatO);
                     }
@@ -162,7 +181,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                mRestPutVisitProtocol.execute((Void) null);
+                //mRestPutVisitProtocol.execute((Void) null);
                 return true;
             case R.id.continue_protocol:
                 Intent intent = new Intent(this, GoatAddReaderActivity.class);

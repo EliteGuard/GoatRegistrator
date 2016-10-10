@@ -60,6 +60,7 @@ import com.armpk.goatregistrator.database.FarmGoat;
 import com.armpk.goatregistrator.database.Goat;
 import com.armpk.goatregistrator.database.GoatFromVetIs;
 import com.armpk.goatregistrator.database.GoatMeasurement;
+import com.armpk.goatregistrator.database.GoatStatus;
 import com.armpk.goatregistrator.database.Herd;
 import com.armpk.goatregistrator.database.Measurement;
 import com.armpk.goatregistrator.database.VisitProtocol;
@@ -114,6 +115,9 @@ public class GoatAddReaderActivity extends AppCompatActivity
     private static final String ARG_VISIT_PROTOCOL = "visit_protocol";
 
     private VisitProtocol mVisitProtocol;
+
+    GoatStatus goatStatus = null;
+    GoatStatus tempGoatStatus = null;
 
     private String GOATS_KEY;
     private Set<String> GOATS_SET;
@@ -662,6 +666,21 @@ public class GoatAddReaderActivity extends AppCompatActivity
 
 
     private void initAddSaveButtons(){
+
+        try {
+            goatStatus = dbHelper.getDaoGoatStatus().queryBuilder()
+                    .where().like("statusName", "%налич%").queryForFirst();
+
+            tempGoatStatus = new GoatStatus();
+            tempGoatStatus.setStatusName("Налична");
+            tempGoatStatus.setCodeName("Налична");
+            tempGoatStatus.setDateAddedToSystem(new Date(System.currentTimeMillis()));
+            tempGoatStatus.setDateLastUpdated(new Date(System.currentTimeMillis()));
+            tempGoatStatus.setLastUpdatedByUser(dbHelper.getDaoUser().queryForId(mSharedPreferences.getLong(Globals.SETTING_ACTIVE_USER_ID, 1)));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         mButtonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -670,6 +689,8 @@ public class GoatAddReaderActivity extends AppCompatActivity
                     //Set<String> goats = mSharedPreferences.getStringSet(key, new HashSet<String>());
 
                     Goat goat = new Goat();
+                    if(goatStatus!=null) goat.setStatus(goatStatus);
+                    else goat.setStatus(tempGoatStatus);
                     goat.setFirstVeterinaryNumber(mEditTextVetCode1.getText().toString());
                     goat.setFirstBreedingNumber(mEditTextBreedingCode1.getText().toString());
                     goat.setHerd(mHerdRead);
@@ -737,6 +758,8 @@ public class GoatAddReaderActivity extends AppCompatActivity
 
                         Goat goat = mGoatFound;
                         if (goat != null) {
+                            if(goatStatus!=null) goat.setStatus(goatStatus);
+                            else goat.setStatus(tempGoatStatus);
                             goat.setFirstVeterinaryNumber(mEditTextVetCode1Found.getText().toString());
                             goat.setSecondVeterinaryNumber(mEditTextVetCode2Found.getText().toString());
                             goat.setFirstBreedingNumber(mEditTextBreedingCode1Found.getText().toString());

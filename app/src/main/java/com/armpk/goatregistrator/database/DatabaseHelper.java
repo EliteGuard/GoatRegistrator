@@ -39,7 +39,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "armpk_goat_registrator.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 11;
+    private static final int DATABASE_VERSION = 12;
 
     // the DAO object we use to access the SimpleData table
     private Dao<Address, Long> daoAddress = null;
@@ -116,9 +116,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
                 switch (oldVersion) {
                     case 12: {
 
-                        TableUtils.dropTable(connectionSource, LocalGoat.class, false);
-                        TableUtils.dropTable(connectionSource, LocalVisitProtocol.class, false);
-                        TableUtils.dropTable(connectionSource, LocalVisitProtocolVisitActivity.class, false);
+                        TableUtils.dropTable(connectionSource, LocalGoat.class, true);
+                        TableUtils.dropTable(connectionSource, LocalVisitProtocol.class, true);
+                        TableUtils.dropTable(connectionSource, LocalVisitProtocolVisitActivity.class, true);
                         //TableUtils.dropTable(connectionSource, LocalGoatMeasurement.class, false);
 
                         /*TableUtils.createTableIfNotExists(connectionSource, LocalGoat.class);
