@@ -1,6 +1,7 @@
 package com.armpk.goatregistrator.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -190,10 +191,11 @@ public class VisitProtocolSearchResultAdapter extends BaseAdapter implements Fil
             } else {
                 List<VisitProtocol> nVisitProtocolList = new ArrayList<VisitProtocol>();
                 for (VisitProtocol vp : listItems) {
-                    if (String.valueOf(vp.getFarm().getCompanyName())
+                    if (vp.getFarm()!=null && String.valueOf(vp.getFarm().getCompanyName())
                             .toUpperCase().startsWith(constraint.toString().toUpperCase()))
                         nVisitProtocolList.add(vp);
                 }
+                Log.d("LOOP TAG", "FOR");
                 results.values = nVisitProtocolList;
                 results.count = nVisitProtocolList.size();
             }

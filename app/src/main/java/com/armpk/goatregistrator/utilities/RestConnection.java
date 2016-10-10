@@ -64,6 +64,8 @@ public class RestConnection extends AsyncTask<Void, Integer, String> {
         VISIT_PROTOCOL_NEW,
         VISIT_PROTOCOL_UPDATE,
         VISIT_PROTOCOL_BYID,
+        VISIT_PROTOCOL_PARTED,
+        VISIT_PROTOCOL_GOATS,
         HERDS,
         HERDS_RANGE,
         HERDSBYFARM,
@@ -329,6 +331,13 @@ public class RestConnection extends AsyncTask<Void, Integer, String> {
                 break;
             case VISIT_PROTOCOL_BYID:
                 appendUrl("visit_protocols/");
+                if(arg!=null) appendUrl(arg);
+                break;
+            case VISIT_PROTOCOL_PARTED:
+                appendUrl("newVisitProtocol_portions");
+                break;
+            case VISIT_PROTOCOL_GOATS:
+                appendUrl("processVisitProtocolGoats_portions/");
                 if(arg!=null) appendUrl(arg);
                 break;
             case HERDS:

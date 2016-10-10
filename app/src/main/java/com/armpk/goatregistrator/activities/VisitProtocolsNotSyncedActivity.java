@@ -55,6 +55,9 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
     private List<VisitProtocol> listVisitProtocol;
     //Set<String> tempProtocols;
 
+    ArrayList<String> orderedGoatsForUpload = new ArrayList<String>();
+    int goatCounter = 1;
+
     VisitProtocol mVPtoDELETE;
 
     HashMap<String, VisitActivity> mapVisitActivities;
@@ -119,69 +122,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
         final VisitProtocol vp = mVPtoDELETE = (VisitProtocol) listViewResults.getAdapter().getItem(info.position);
         switch (item.getItemId()) {
             case R.id.upload_protocol:
-                RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_UPDATE, VisitProtocolsNotSyncedActivity.this);
-                mRestPutVisitProtocol.setAction(RestConnection.Action.POST);
-                try {
-                    JSONObject data = Globals.objectToJson(vp);
-
-                    String keyActivities = Globals.TEMPORARY_ACTIVITIES_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
-                    Set<String> pva = mSharedPreferences.getStringSet(keyActivities, new HashSet<String>());
-                    JSONArray localActivities = new JSONArray();
-                    for(String s : pva)localActivities.put(Globals.objectToJson(mapVisitActivities.get(s)));
-                    data.put("lst_visitActivities", localActivities);
-
-                    String keyGoats = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
-                    Set<String> pg = mSharedPreferences.getStringSet(keyGoats, new HashSet<String>());
-                    JSONArray localGoats = new JSONArray();
-
-                    String pid = String.valueOf(vp.getFarm().getId());
-                    Calendar cal = Calendar.getInstance();
-                    cal.setTime(vp.getVisitDate());
-                    if(cal.get(Calendar.DAY_OF_MONTH) < 10) pid += "0";
-                    pid += cal.get(Calendar.DAY_OF_MONTH);
-                    if(cal.get(Calendar.MONTH)+1 < 10) pid += "0";
-                    pid += (cal.get(Calendar.MONTH)+1);
-                    pid += (cal.get(Calendar.YEAR)-2000);
-                    int goatCounter = 0;
-
-                    for(String sg : pg) {
-                        JSONObject goatO = new JSONObject(sg);
-
-                        Goat keygoat = Globals.jsonToObject(new JSONObject(sg), Goat.class);
-                        StringBuffer key = new StringBuffer();
-                        if(keygoat.getFirstVeterinaryNumber()!=null) key.append(keygoat.getFirstVeterinaryNumber());
-                        if(keygoat.getSecondVeterinaryNumber()!=null) key.append(keygoat.getSecondVeterinaryNumber());
-                        if(keygoat.getFirstBreedingNumber()!=null) key.append(keygoat.getFirstBreedingNumber());
-                        if(keygoat.getSecondBreedingNumber()!=null) key.append(keygoat.getSecondBreedingNumber());
-                        if(mSharedPreferences.getString(key.toString(), "").length()>0){
-                            JSONArray measurements = new JSONArray(mSharedPreferences.getString(key.toString(), ""));
-                            goatO.put("lst_goatMeasurements", measurements);
-                        }
-
-                        JSONArray farmsA = new JSONArray();
-                        key.append("_farm");
-                        farmsA.put(
-                                mSharedPreferences.getString(
-                                        key.toString(),
-                                        Globals.objectToJson(vp.getFarm()).toString()));
-                        goatO.put("lst_farms", farmsA);
-                        if(keygoat.getId()!=null) goatO.put("condition", "old");
-                        else goatO.put("condition", "new");
-
-                        String asd = pid + goatCounter;
-                        goatO.put("processed_id", pid+goatCounter);
-                        goatCounter++;
-
-                        localGoats.put(goatO);
-                    }
-                    data.put("lst_vpGoats", localGoats);
-
-
-                    mRestPutVisitProtocol.setJSONData(data);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                //mRestPutVisitProtocol.execute((Void) null);
+                uploadProtocol(vp);
                 return true;
             case R.id.continue_protocol:
                 Intent intent = new Intent(this, GoatAddReaderActivity.class);
@@ -249,6 +190,74 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
         }
     }
 
+    private void uploadProtocol(VisitProtocol vp){
+        RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_PARTED, VisitProtocolsNotSyncedActivity.this);
+        mRestPutVisitProtocol.setAction(RestConnection.Action.POST);
+        try {
+            JSONObject data = Globals.objectToJson(vp);
+
+            String keyActivities = Globals.TEMPORARY_ACTIVITIES_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
+            Set<String> pva = mSharedPreferences.getStringSet(keyActivities, new HashSet<String>());
+            JSONArray localActivities = new JSONArray();
+            for(String s : pva)localActivities.put(Globals.objectToJson(mapVisitActivities.get(s)));
+            data.put("lst_visitActivities", localActivities);
+
+            mRestPutVisitProtocol.setJSONData(data);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        mRestPutVisitProtocol.execute((Void) null);
+    }
+
+    private JSONArray processGoats(VisitProtocol vp) throws JSONException {
+        String keyGoats = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
+        Set<String> pg = mSharedPreferences.getStringSet(keyGoats, new HashSet<String>());
+        JSONArray localGoats = new JSONArray();
+
+        String pid = String.valueOf(vp.getFarm().getId());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(vp.getVisitDate());
+        if(cal.get(Calendar.DAY_OF_MONTH) < 10) pid += "0";
+        pid += cal.get(Calendar.DAY_OF_MONTH);
+        if(cal.get(Calendar.MONTH)+1 < 10) pid += "0";
+        pid += (cal.get(Calendar.MONTH)+1);
+        pid += (cal.get(Calendar.YEAR)-2000);
+        int goatCounter = 0;
+
+        for(String sg : pg) {
+            JSONObject goatO = new JSONObject(sg);
+
+            Goat keygoat = Globals.jsonToObject(new JSONObject(sg), Goat.class);
+            StringBuffer key = new StringBuffer();
+            if(keygoat.getFirstVeterinaryNumber()!=null) key.append(keygoat.getFirstVeterinaryNumber());
+            if(keygoat.getSecondVeterinaryNumber()!=null) key.append(keygoat.getSecondVeterinaryNumber());
+            if(keygoat.getFirstBreedingNumber()!=null) key.append(keygoat.getFirstBreedingNumber());
+            if(keygoat.getSecondBreedingNumber()!=null) key.append(keygoat.getSecondBreedingNumber());
+            if(mSharedPreferences.getString(key.toString(), "").length()>0){
+                JSONArray measurements = new JSONArray(mSharedPreferences.getString(key.toString(), ""));
+                goatO.put("lst_goatMeasurements", measurements);
+            }
+
+            JSONArray farmsA = new JSONArray();
+            key.append("_farm");
+            farmsA.put(
+                    mSharedPreferences.getString(
+                            key.toString(),
+                            Globals.objectToJson(vp.getFarm()).toString()));
+            goatO.put("lst_farms", farmsA);
+            if(keygoat.getId()!=null) goatO.put("condition", "old");
+            else goatO.put("condition", "new");
+
+            String asd = pid + goatCounter;
+            goatO.put("processed_id", pid+goatCounter);
+            goatCounter++;
+
+            localGoats.put(goatO);
+        }
+
+        return localGoats;
+    }
+
     private VisitProtocol loadProtocol(String prot) throws JSONException {
         JSONObject jsonVP = null;
         if(prot.length()>0){
@@ -269,9 +278,32 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
     @Override
     public void onResultReceived(RestConnection.Action action, RestConnection.DataType dataType, String result) {
         if(result!=null){
-            try {
-                if(dbHelper.updateVisitProtocolByDate(new JSONObject(result))) {
-                    //delete after successful upload
+            if (action == RestConnection.Action.GET) {
+                switch (dataType) {
+                    default:
+                        break;
+                }
+            } else if(action == RestConnection.Action.POST) {
+                switch (dataType){
+                    case VISIT_PROTOCOL_PARTED:
+                        synchronizeVisitProtocol(result);
+                        break;
+                    case VISIT_PROTOCOL_GOATS:
+                        continueUploadingGoats(result, goatCounter);
+                        break;
+                }
+            }else{
+                RestConnection.closeProgressDialog();
+            }
+        }else {
+            RestConnection.closeProgressDialog();
+        }
+    }
+
+    private void synchronizeVisitProtocol(String result){
+        try {
+            if(dbHelper.updateVisitProtocolByDate(new JSONObject(result))) {
+                //delete after successful upload
                     /*try {
                         Set<String> tempProtocols = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
                         if(tempProtocols.contains(Globals.objectToJson(mVPtoDELETE).toString())) {
@@ -286,15 +318,152 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }*/
-                    listVisitProtocol.remove(mVPtoDELETE);
-                    adapterResults.notifyDataSetChanged();
+                listVisitProtocol.remove(mVPtoDELETE);
+                adapterResults.notifyDataSetChanged();
+                startUploadingGoats(result);
+                goatCounter = 1;
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void startUploadingGoats(String result) throws JSONException {
+        VisitProtocol vp = Globals.jsonToObject(new JSONObject(result), VisitProtocol.class);
+
+        String keyGoats = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
+        Set<String> spg = mSharedPreferences.getStringSet(keyGoats, new HashSet<String>());
+        for (String str : spg) orderedGoatsForUpload.add(str);
+
+        JSONArray localGoats = new JSONArray();
+        String pid = String.valueOf(vp.getFarm().getId());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(vp.getVisitDate());
+        if(cal.get(Calendar.DAY_OF_MONTH) < 10) pid += "0";
+        pid += cal.get(Calendar.DAY_OF_MONTH);
+        if(cal.get(Calendar.MONTH)+1 < 10) pid += "0";
+        pid += (cal.get(Calendar.MONTH)+1);
+        pid += (cal.get(Calendar.YEAR)-2000);
+
+
+        for(int i=0; i<orderedGoatsForUpload.size(); i++){
+            JSONObject goatO = new JSONObject(orderedGoatsForUpload.get(i));
+
+            Goat keygoat = Globals.jsonToObject(new JSONObject(orderedGoatsForUpload.get(i)), Goat.class);
+            StringBuffer key = new StringBuffer();
+            if(keygoat.getFirstVeterinaryNumber()!=null) key.append(keygoat.getFirstVeterinaryNumber());
+            if(keygoat.getSecondVeterinaryNumber()!=null) key.append(keygoat.getSecondVeterinaryNumber());
+            if(keygoat.getFirstBreedingNumber()!=null) key.append(keygoat.getFirstBreedingNumber());
+            if(keygoat.getSecondBreedingNumber()!=null) key.append(keygoat.getSecondBreedingNumber());
+            if(mSharedPreferences.getString(key.toString(), "").length()>0){
+                JSONArray measurements = new JSONArray(mSharedPreferences.getString(key.toString(), ""));
+                goatO.put("lst_goatMeasurements", measurements);
+            }
+
+            JSONArray farmsA = new JSONArray();
+            key.append("_farm");
+            farmsA.put(
+                    mSharedPreferences.getString(
+                            key.toString(),
+                            Globals.objectToJson(vp.getFarm()).toString()));
+            goatO.put("lst_farms", farmsA);
+            if(keygoat.getId()!=null) goatO.put("condition", "old");
+            else goatO.put("condition", "new");
+
+            goatO.put("processed_id", pid+goatCounter);
+            goatCounter++;
+
+            localGoats.put(goatO);
+
+            if(goatCounter==10){
+                RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_GOATS,
+                        String.valueOf(vp.getId()), VisitProtocolsNotSyncedActivity.this);
+                mRestPutVisitProtocol.setAction(RestConnection.Action.POST);
+                try {
+                    JSONObject data = new JSONObject();
+                    data.put("lst_vpGoats", localGoats);
+
+                    mRestPutVisitProtocol.setJSONData(data);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                mRestPutVisitProtocol.execute((Void) null);
+                break;
+            }
+
+        }
+
+    }
+
+    private void continueUploadingGoats(String result, int counter){
+        try {
+            VisitProtocol vp = Globals.jsonToObject(new JSONObject(result), VisitProtocol.class);
+
+            JSONArray localGoats = new JSONArray();
+            String pid = String.valueOf(vp.getFarm().getId());
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(vp.getVisitDate());
+            if(cal.get(Calendar.DAY_OF_MONTH) < 10) pid += "0";
+            pid += cal.get(Calendar.DAY_OF_MONTH);
+            if(cal.get(Calendar.MONTH)+1 < 10) pid += "0";
+            pid += (cal.get(Calendar.MONTH)+1);
+            pid += (cal.get(Calendar.YEAR)-2000);
+
+
+            for(int i=counter+1; i<orderedGoatsForUpload.size(); i++){
+                JSONObject goatO = new JSONObject(orderedGoatsForUpload.get(i));
+
+                Goat keygoat = Globals.jsonToObject(new JSONObject(orderedGoatsForUpload.get(i)), Goat.class);
+                StringBuffer key = new StringBuffer();
+                if(keygoat.getFirstVeterinaryNumber()!=null) key.append(keygoat.getFirstVeterinaryNumber());
+                if(keygoat.getSecondVeterinaryNumber()!=null) key.append(keygoat.getSecondVeterinaryNumber());
+                if(keygoat.getFirstBreedingNumber()!=null) key.append(keygoat.getFirstBreedingNumber());
+                if(keygoat.getSecondBreedingNumber()!=null) key.append(keygoat.getSecondBreedingNumber());
+                if(mSharedPreferences.getString(key.toString(), "").length()>0){
+                    JSONArray measurements = new JSONArray(mSharedPreferences.getString(key.toString(), ""));
+                    goatO.put("lst_goatMeasurements", measurements);
                 }
 
-            } catch (JSONException e) {
-                e.printStackTrace();
+                JSONArray farmsA = new JSONArray();
+                key.append("_farm");
+                farmsA.put(
+                        mSharedPreferences.getString(
+                                key.toString(),
+                                Globals.objectToJson(vp.getFarm()).toString()));
+                goatO.put("lst_farms", farmsA);
+                if(keygoat.getId()!=null) goatO.put("condition", "old");
+                else goatO.put("condition", "new");
+
+                goatO.put("processed_id", pid+goatCounter);
+                goatCounter++;
+
+                localGoats.put(goatO);
+
+                if(goatCounter%10==0){
+                    RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_GOATS,
+                            String.valueOf(vp.getId()), VisitProtocolsNotSyncedActivity.this);
+                    mRestPutVisitProtocol.setAction(RestConnection.Action.POST);
+                    try {
+                        JSONObject data = new JSONObject();
+                        //data.put("protocol_id", vp.getId());
+                        data.put("lst_vpGoats", localGoats);
+
+                        mRestPutVisitProtocol.setJSONData(data);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    mRestPutVisitProtocol.execute((Void) null);
+                    break;
+                }
+
             }
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-        RestConnection.closeProgressDialog();
+
     }
 
     private class InitActivity extends AsyncTask<Void, Integer, Boolean> {
