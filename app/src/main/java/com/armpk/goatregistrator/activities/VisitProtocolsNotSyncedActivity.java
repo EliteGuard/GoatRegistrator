@@ -15,10 +15,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.armpk.goatregistrator.R;
 import com.armpk.goatregistrator.adapters.VisitProtocolSearchResultAdapter;
 import com.armpk.goatregistrator.database.DatabaseHelper;
+import com.armpk.goatregistrator.database.Farm;
 import com.armpk.goatregistrator.database.Goat;
 import com.armpk.goatregistrator.database.VisitActivity;
 import com.armpk.goatregistrator.database.VisitProtocol;
@@ -222,7 +224,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
         if(cal.get(Calendar.MONTH)+1 < 10) pid += "0";
         pid += (cal.get(Calendar.MONTH)+1);
         pid += (cal.get(Calendar.YEAR)-2000);
-        int goatCounter = 0;
+        int goatCounter = 1;
 
         for(String sg : pg) {
             JSONObject goatO = new JSONObject(sg);
@@ -289,7 +291,14 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                         synchronizeVisitProtocol(result);
                         break;
                     case VISIT_PROTOCOL_GOATS:
-                        continueUploadingGoats(result, goatCounter);
+                        if(goatCounter==orderedGoatsForUpload.size()){
+                            listVisitProtocol.remove(mVPtoDELETE);
+                            adapterResults.notifyDataSetChanged();
+                            RestConnection.closeProgressDialog();
+                            Toast.makeText(VisitProtocolsNotSyncedActivity.this, "УСПЕШНО импортиране на КОЗИ от протокол!", Toast.LENGTH_LONG).show();
+                        }else {
+                            continueUploadingGoats(result, goatCounter);
+                        }
                         break;
                 }
             }else{
@@ -318,10 +327,10 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }*/
-                listVisitProtocol.remove(mVPtoDELETE);
-                adapterResults.notifyDataSetChanged();
+                /*listVisitProtocol.remove(mVPtoDELETE);
+                adapterResults.notifyDataSetChanged();*/
+                goatCounter = 0;
                 startUploadingGoats(result);
-                goatCounter = 1;
             }
 
         } catch (JSONException e) {
@@ -348,7 +357,12 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
 
         for(int i=0; i<orderedGoatsForUpload.size(); i++){
+
             JSONObject goatO = new JSONObject(orderedGoatsForUpload.get(i));
+
+            if(goatO.opt("id")==null) {
+                goatO.put("id", JSONObject.NULL);
+            }
 
             Goat keygoat = Globals.jsonToObject(new JSONObject(orderedGoatsForUpload.get(i)), Goat.class);
             StringBuffer key = new StringBuffer();
@@ -363,11 +377,14 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
             JSONArray farmsA = new JSONArray();
             key.append("_farm");
-            farmsA.put(
-                    mSharedPreferences.getString(
-                            key.toString(),
-                            Globals.objectToJson(vp.getFarm()).toString()));
+            JSONObject fjo = new JSONObject(mSharedPreferences.getString(
+                    key.toString(),
+                    Globals.objectToJson(vp.getFarm()).toString()));
+            Farm tf = new Farm();
+            tf.setId(fjo.optLong("id"));
+            farmsA.put(Globals.objectToJson(tf));
             goatO.put("lst_farms", farmsA);
+
             if(keygoat.getId()!=null) goatO.put("condition", "old");
             else goatO.put("condition", "new");
 
@@ -376,18 +393,19 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
             localGoats.put(goatO);
 
-            if(goatCounter==10){
+            if(goatCounter==10 || i==orderedGoatsForUpload.size()-1){
                 RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_GOATS,
                         String.valueOf(vp.getId()), VisitProtocolsNotSyncedActivity.this);
                 mRestPutVisitProtocol.setAction(RestConnection.Action.POST);
-                try {
+                /*try {
                     JSONObject data = new JSONObject();
                     data.put("lst_vpGoats", localGoats);
 
                     mRestPutVisitProtocol.setJSONData(data);
                 } catch (JSONException e) {
                     e.printStackTrace();
-                }
+                }*/
+                mRestPutVisitProtocol.setJSONArray(localGoats);
                 mRestPutVisitProtocol.execute((Void) null);
                 break;
             }
@@ -413,6 +431,9 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
             for(int i=counter+1; i<orderedGoatsForUpload.size(); i++){
                 JSONObject goatO = new JSONObject(orderedGoatsForUpload.get(i));
+                if(goatO.opt("id")==null) {
+                    goatO.put("id", JSONObject.NULL);
+                }
 
                 Goat keygoat = Globals.jsonToObject(new JSONObject(orderedGoatsForUpload.get(i)), Goat.class);
                 StringBuffer key = new StringBuffer();
@@ -427,11 +448,14 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
                 JSONArray farmsA = new JSONArray();
                 key.append("_farm");
-                farmsA.put(
-                        mSharedPreferences.getString(
-                                key.toString(),
-                                Globals.objectToJson(vp.getFarm()).toString()));
+                JSONObject fjo = new JSONObject(mSharedPreferences.getString(
+                        key.toString(),
+                        Globals.objectToJson(vp.getFarm()).toString()));
+                Farm tf = new Farm();
+                tf.setId(fjo.optLong("id"));
+                farmsA.put(Globals.objectToJson(tf));
                 goatO.put("lst_farms", farmsA);
+
                 if(keygoat.getId()!=null) goatO.put("condition", "old");
                 else goatO.put("condition", "new");
 
@@ -440,11 +464,11 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
                 localGoats.put(goatO);
 
-                if(goatCounter%10==0){
+                if(goatCounter%10==0 || i==orderedGoatsForUpload.size()-1){
                     RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_GOATS,
                             String.valueOf(vp.getId()), VisitProtocolsNotSyncedActivity.this);
                     mRestPutVisitProtocol.setAction(RestConnection.Action.POST);
-                    try {
+                    /*try {
                         JSONObject data = new JSONObject();
                         //data.put("protocol_id", vp.getId());
                         data.put("lst_vpGoats", localGoats);
@@ -452,11 +476,11 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                         mRestPutVisitProtocol.setJSONData(data);
                     } catch (JSONException e) {
                         e.printStackTrace();
-                    }
+                    }*/
+                    mRestPutVisitProtocol.setJSONArray(localGoats);
                     mRestPutVisitProtocol.execute((Void) null);
                     break;
                 }
-
             }
 
 

@@ -684,6 +684,12 @@ public class GoatAddReaderActivity extends AppCompatActivity
         mButtonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                ProgressDialog writeProgress=new ProgressDialog(GoatAddReaderActivity.this);
+                writeProgress.setMessage("Добавям...");
+                writeProgress.show();
+
+
                 if(validateAge() && validateBreed() && validateGender()) {
                     //String key = Globals.TEMPORARY_GOATS_FOR_PROTOCOL + String.valueOf(mVisitProtocol.getFarm().getId()) + "_" + String.valueOf(mVisitProtocol.getDateAddedToSystem().getTime());
                     //Set<String> goats = mSharedPreferences.getStringSet(key, new HashSet<String>());
@@ -745,13 +751,23 @@ public class GoatAddReaderActivity extends AppCompatActivity
                     mErrorMessage.setLength(0);
                     error.show();
                 }
+
+                writeProgress.dismiss();
             }
         });
 
         mButtonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                ProgressDialog writeProgress=new ProgressDialog(GoatAddReaderActivity.this);
+                writeProgress.setMessage("Запазвам...");
+                writeProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                writeProgress.setIndeterminate(true);
+                writeProgress.setCancelable(false);
+                writeProgress.setCanceledOnTouchOutside(false);
+                writeProgress.show();
                 if(currentIndex>=GOATS_ARRAY.size()) {
+
                     if (validateAge() && validateBreed() && validateGender()) {
                         /*String key = Globals.TEMPORARY_GOATS_FOR_PROTOCOL + String.valueOf(mVisitProtocol.getFarm().getId()) + "_" + String.valueOf(mVisitProtocol.getDateAddedToSystem().getTime());
                         Set<String> goats = mSharedPreferences.getStringSet(key, new HashSet<String>());*/
@@ -833,9 +849,8 @@ public class GoatAddReaderActivity extends AppCompatActivity
                     } catch (JSONException | SQLException e){
                         e.printStackTrace();
                     }
-
-
                 }
+                writeProgress.dismiss();
             }
         });
     }
@@ -1144,7 +1159,19 @@ public class GoatAddReaderActivity extends AppCompatActivity
         if(currentIndex >= GOATS_ARRAY.size()){
 
             mSeekbarYears.setProgress(0);
-            clearOnAdd();
+            //clearOnAdd();
+
+            mEditTextVetCode1.setText("");
+            mEditTextVetCode1.setTextColor(Color.BLACK);
+            //mEditTextBreedingCode1.setText("");
+            mEditTextBreedingCode1.setTextColor(Color.BLACK);
+            mRadioGroupGender.clearCheck();//setSelected(false);
+            mRadioGroupMaturity.clearCheck();//setSelected(false);
+            mButtonBirthdate.setText("ИЗБЕРИ ДАТА");
+            mDateBirthSelected = null;
+            mEditTextNotes.setText("");
+            mScrollMain.scrollTo(0,0);
+
             clearSearchResult();
             resetBonitorvka();
             mMenuNext.setEnabled(false);

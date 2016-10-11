@@ -7,6 +7,7 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,6 +35,7 @@ public class RestConnection extends AsyncTask<Void, Integer, String> {
     private static ProgressDialog mProgressDialog;
     private HashMap<String, String> mPostData;
     private JSONObject mJSONData;
+    private JSONArray mJSONArray;
     private Action mAction;
     private DataType mDataType;
     private String additionalDataArg;
@@ -135,7 +137,11 @@ public class RestConnection extends AsyncTask<Void, Integer, String> {
                     conn.setDoOutput(true);
                     OutputStream os = conn.getOutputStream();
                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-                    writer.write(mJSONData.toString());
+                    if(mJSONData.length()>0){
+                        writer.write(mJSONData.toString());
+                    }else{
+                        writer.write(mJSONArray.toString());
+                    }
                     writer.flush();
                     writer.close();
                     os.close();
@@ -253,6 +259,10 @@ public class RestConnection extends AsyncTask<Void, Integer, String> {
 
     public void setJSONData(JSONObject jsonData){
         this.mJSONData = jsonData;
+    }
+
+    public void setJSONArray(JSONArray jsonArray){
+        this.mJSONArray = jsonArray;
     }
 
     public void addJSONAttribute(String name, String value) throws JSONException {
