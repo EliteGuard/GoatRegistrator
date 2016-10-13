@@ -15,6 +15,7 @@ import com.armpk.goatregistrator.database.enums.GoatKidPurpose;
 import com.armpk.goatregistrator.database.enums.Maturity;
 import com.armpk.goatregistrator.database.enums.ModifiedBy;
 import com.armpk.goatregistrator.database.enums.Sex;
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
@@ -32,9 +33,12 @@ public class LocalGoat implements Serializable {
 	 */
 	private static final long serialVersionUID = 7507334647804492362L;
 
+	@DatabaseField(generatedId = true)
+	private transient Long _id;
+
 	@SerializedName("id")
-	@DatabaseField(id = true)
-	private Long _id;
+	@DatabaseField
+	private Long real_id;
 
 	@DatabaseField
 	private Sex sex;
@@ -49,7 +53,7 @@ public class LocalGoat implements Serializable {
 	private GoatStatus status;
 
 	@DatabaseField (foreign = true, foreignAutoRefresh = true)
-	private Farm farm;
+	private transient Farm farm;
 
 	@DatabaseField (foreign = true, foreignAutoRefresh = true)
 	private Herd herd;
@@ -94,10 +98,10 @@ public class LocalGoat implements Serializable {
 	private String thirdBreedingNumber;
 
 	@DatabaseField (foreign = true, foreignAutoRefresh = true)
-	private LocalGoat mother;
+	private Goat mother;
 
 	@DatabaseField (foreign = true, foreignAutoRefresh = true)
-	private LocalGoat father;
+	private Goat father;
 
 	@DatabaseField
 	private String motherNumber;
@@ -117,8 +121,8 @@ public class LocalGoat implements Serializable {
 	@DatabaseField
 	private ModifiedBy lastModifiedBy;
 
-    /*@ForeignCollectionField (eager = true)
-    private ForeignCollection<LocalGoatMeasurement> lst_localGoatMeasurements;*/
+    @ForeignCollectionField (eager = true)
+    private transient ForeignCollection<LocalGoatMeasurement> lst_localGoatMeasurements;
 
     /*@ForeignCollectionField (eager = true)
     private ForeignCollection<GoatExteriorMark> lst_goatExteriorMarks;
@@ -177,17 +181,72 @@ public class LocalGoat implements Serializable {
     private String inclusionStatusString;
 
 	@DatabaseField (foreign = true, foreignAutoRefresh = true)
-	private LocalVisitProtocol localVisitProtocol;
+	private transient LocalVisitProtocol localVisitProtocol;
 
 	public LocalGoat() { }
 
-	public Long getId() {
+    public LocalGoat(Goat goat){
+        //this._id = goat.getId();
+        if(goat.getAppliedForSelectionControlYear() != null) this.appliedForSelectionControlYear = goat.getAppliedForSelectionControlYear();
+        if(goat.getBirthDate() != null) this.birthDate = goat.getBirthDate();
+        if(goat.getBirthPlace() != null) this.birthPlace = goat.getBirthPlace();
+        if(goat.getBreed() != null) this.breed = goat.getBreed();
+        if(goat.getCertificateNumber() != null) this.certificateNumber = goat.getCertificateNumber();
+        if(goat.getColor() != null) this.color = goat.getColor();
+        if(goat.getDateAddedToSystem() != null) this.dateAddedToSystem = goat.getDateAddedToSystem();
+        if(goat.getDateDeregistered() != null) this.dateDeregistered = goat.getDateDeregistered();
+        if(goat.getDateLastUpdated() != null) this.dateLastUpdated = goat.getDateLastUpdated();
+        if(goat.getDateWeaning() != null) this.dateWeaning = goat.getDateWeaning();
+        //this.farm = goat.get;
+        if(goat.getFather() != null) this.father = goat.getFather();
+        if(goat.getFatherNumber() != null) this.fatherNumber = goat.getFatherNumber();
+        if(goat.getFirstBreedingNumber() != null) this.firstBreedingNumber = goat.getFirstBreedingNumber();
+        if(goat.getFirstVeterinaryNumber() != null) this.firstVeterinaryNumber = goat.getFirstVeterinaryNumber();
+        if(goat.getGoatKidPurpose() != null) this.goatKidPurpose = goat.getGoatKidPurpose();
+        if(goat.getHerbookEntryNumber() != null) this.herbookEntryNumber = goat.getHerbookEntryNumber();
+        if(goat.getHerbookSection() != null) this.herbookSection = goat.getHerbookSection();
+        if(goat.getHerdbookVolumeNumber() != null) this.herbookVolumeNumber = goat.getHerdbookVolumeNumber();
+        if(goat.getHerd() != null) this.herd = goat.getHerd();
+        if(goat.getInclusionStatusString() != null) this.inclusionStatusString = goat.getInclusionStatusString();
+        if(goat.getInclusionStatusYear() != null) this.inclusionStatusYear = goat.getInclusionStatusYear();
+        if(goat.getKidFromPregnancy() != null) this.kidFromPregnancy = goat.getKidFromPregnancy();
+        if(goat.getLastModifiedBy() != null) this.lastModifiedBy = goat.getLastModifiedBy();
+        if(goat.getLastUpdatedByUser() != null) this.lastUpdatedByUser = goat.getLastUpdatedByUser();
+        //this.localVisitProtocol = goat.get;
+        //this.lst_localGoatMeasurements = goat.get;
+        if(goat.getMaturity() != null) this.maturity = goat.getMaturity();
+        if(goat.getMother() != null) this.mother = goat.getMother();
+        if(goat.getMotherNumber() != null) this.motherNumber = goat.getMotherNumber();
+        if(goat.getNotes() != null) this.notes = goat.getNotes();
+        if(goat.getNumberInCertificate() != null) this.numberInCertificate = goat.getNumberInCertificate();
+        if(goat.getNumberInWastageProtocol() != null) this.numberInWastageProtocol = goat.getNumberInWastageProtocol();
+        if(goat.getId() != null) this.real_id = goat.getId();
+        if(goat.getSecondBreedingNumber() != null) this.secondBreedingNumber = goat.getSecondBreedingNumber();
+        if(goat.getSecondVeterinaryNumber() != null) this.secondVeterinaryNumber = goat.getSecondVeterinaryNumber();
+        if(goat.getSex() != null) this.sex = goat.getSex();
+        if(goat.getStatus() != null) this.status = goat.getStatus();
+        if(goat.getThirdBreedingNumber() != null) this.thirdBreedingNumber = goat.getThirdBreedingNumber();
+        if(goat.getThirdVeterinaryNumber() != null) this.thirdVeterinaryNumber = goat.getThirdVeterinaryNumber();
+        if(goat.getWastageProtocolNumber() != null) this.wastageProtocolNumber = goat.getWastageProtocolNumber();
+        if(goat.getWeightAtBirth() != null) this.weightAtBirth = goat.getWeightAtBirth();
+        if(goat.getWeightAtWeaning() != null) this.weightAtWeaning = goat.getWeightAtWeaning();
+    }
+
+	public Long getLocalId() {
 		return _id;
 	}
 
-	public void setId(Long id) {
+	public void setLocalId(Long id) {
 		this._id = id;
 	}
+
+    public Long getRealId() {
+        return real_id;
+    }
+
+    public void setRealId(Long id) {
+        this.real_id = id;
+    }
 
 	public Sex getSex() {
 		return sex;
@@ -341,19 +400,19 @@ public class LocalGoat implements Serializable {
 		this.thirdBreedingNumber = thirdBreedingNumber;
 	}
 
-	public LocalGoat getMother() {
+	public Goat getMother() {
 		return mother;
 	}
 
-	public void setMother(LocalGoat mother) {
+	public void setMother(Goat mother) {
 		this.mother = mother;
 	}
 
-	public LocalGoat getFather() {
+	public Goat getFather() {
 		return father;
 	}
 
-	public void setFather(LocalGoat father) {
+	public void setFather(Goat father) {
 		this.father = father;
 	}
 
@@ -421,13 +480,13 @@ public class LocalGoat implements Serializable {
 		this.lastUpdatedByUser = lastUpdatedByUser;
 	}
 
-    /*public ForeignCollection<LocalGoatMeasurement> getLst_goatMeasurements() {
+    public ForeignCollection<LocalGoatMeasurement> getLst_goatMeasurements() {
         return lst_localGoatMeasurements;
     }
 
     public void setLst_localGoatMeasurements(ForeignCollection<LocalGoatMeasurement> lst_localGoatMeasurements) {
         this.lst_localGoatMeasurements = lst_localGoatMeasurements;
-    }*/
+    }
 
     /*public ForeignCollection<GoatExteriorMark> getLst_goatExteriorMarks() {
         return lst_goatExteriorMarks;

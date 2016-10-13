@@ -21,13 +21,17 @@ import android.widget.ListView;
 import com.armpk.goatregistrator.R;
 import com.armpk.goatregistrator.adapters.GoatsListsFromBookAdapter;
 import com.armpk.goatregistrator.adapters.VisitProtocolGoatsListsAdapter;
+import com.armpk.goatregistrator.database.Address;
+import com.armpk.goatregistrator.database.City;
 import com.armpk.goatregistrator.database.DatabaseHelper;
 import com.armpk.goatregistrator.database.Goat;
 import com.armpk.goatregistrator.database.VisitProtocol;
 import com.armpk.goatregistrator.database.enums.LocationType;
 import com.armpk.goatregistrator.database.enums.Sex;
+import com.armpk.goatregistrator.database.mobile.LocalVisitProtocol;
 import com.armpk.goatregistrator.utilities.Globals;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -47,7 +51,10 @@ public class GoatsListsFromBookActivity  extends AppCompatActivity {
     private Button mButtonPrint;
     private GoatsListsFromBookAdapter bookGLadapter;
 
+    private LocalVisitProtocol mLocalVisitProtocol;
     private VisitProtocol mVisitProtocol;
+    private boolean isProtocolSynced = false;
+
     private WebView mWebView;
 
     Calendar now;
@@ -69,12 +76,22 @@ public class GoatsListsFromBookActivity  extends AppCompatActivity {
         mButtonPrint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                printLists();
+                if(isProtocolSynced){
+                    printLists();
+                }else{
+                    printLocalLists();
+                }
             }
         });
         listViewGoats = (ListView)findViewById(R.id.listMain);
         if (getIntent().getExtras()!=null) {
-            mVisitProtocol = (VisitProtocol) getIntent().getExtras().getSerializable(ARG_VISIT_PROTOCOL);
+            if(getIntent().getExtras().getSerializable(ARG_VISIT_PROTOCOL) instanceof LocalVisitProtocol) {
+                mLocalVisitProtocol = (LocalVisitProtocol) getIntent().getExtras().getSerializable(ARG_VISIT_PROTOCOL);
+                isProtocolSynced = false;
+            }else if(getIntent().getExtras().getSerializable(ARG_VISIT_PROTOCOL) instanceof VisitProtocol){
+                mVisitProtocol = (VisitProtocol) getIntent().getExtras().getSerializable(ARG_VISIT_PROTOCOL);
+                isProtocolSynced = true;
+            }
             InitActivity ia = new InitActivity(this);
             ia.execute((Void) null);
         }else{
@@ -145,6 +162,89 @@ public class GoatsListsFromBookActivity  extends AppCompatActivity {
                 .append(mVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getArea())
                 .append(", No. ЖО: ")
                 .append(mVisitProtocol.getFarm().getBreedingPlaceNumber());
+        htmlDocument.append("</p><b><table style=\"width:100%\">");
+
+        insertTableHeader(htmlDocument);
+        //htmlDocument.append("<tr>");
+        htmlDocument.append(createTableCellSpan("Налични кози без промени"));
+        //htmlDocument.append("</tr>");
+
+        for(int i = 0; i<bookGLadapter.getCount(); i++){
+            htmlDocument.append("<tr>");
+            htmlDocument.append(processGoat(bookGLadapter.getItem(i), i));
+            htmlDocument.append("</tr>");
+        }
+
+
+        htmlDocument.append("</table></body></html>");
+        webView.loadDataWithBaseURL(null, htmlDocument.toString(), "text/HTML", "UTF-8", null);
+        mWebView = webView;
+        finish();
+    }
+
+    private void printLocalLists(){
+        WebView webView = new WebView(this);
+        webView.setWebViewClient(new WebViewClient() {
+            //mWebView.setWebViewClient(new WebViewClient() {
+
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return false;
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                Log.i("PRINTING INFO", "page finished loading " + url);
+                createWebPrintJob(view);
+                mWebView = null;
+            }
+        });
+
+        StringBuffer htmlDocument = new StringBuffer();
+        htmlDocument.append("<html>" +
+                "<head>\n" +
+                "<style type=\"text/css\">\n" +
+                "table, th, td {\n" +
+                "    border: 1px solid black;\n" +
+                "}\n" +
+                "table { page-break-inside:auto }\n" +
+                "    tr    { page-break-inside:avoid; page-break-after:auto }\n" +
+                "thead { display:table-header-group }\n" +
+                "@media print {\n" +
+                "      .output {\n" +
+                "        -ms-transform: rotate(270deg);\n" +
+                "        /* IE 9 */\n" +
+                "        -webkit-transform: rotate(270deg);\n" +
+                "        /* Chrome, Safari, Opera */\n" +
+                "        transform: rotate(270deg);\n" +
+                "        top: 1.5in;\n" +
+                "        left: -1in;\n" +
+                "      }\n" +
+                "    }\n" +
+                //".pagebreak { page-break-before: always; }" +
+                "@page  \n" +
+                "{ \n" +
+                "    size: landscape;   /* auto is the initial value */ \n" +
+                "\n" +
+                "    /* this affects the margin in the printer settings */ \n" +
+                "    margin: 5mm 10mm 10mm 10mm;  \n" +
+                "}" +
+                "</style>\n" +
+                "</head><body><p><b>");
+        htmlDocument.append("Списък с ").append(bookGLadapter.getCount()).append(" кози на: ")
+                .append(mLocalVisitProtocol.getFarm().getCompanyName())
+                .append(", ");
+        if(mLocalVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getLocationType()== LocationType.CITY){
+            htmlDocument.append("гр. ");
+        }else{
+            htmlDocument.append("с. ");
+        }
+        htmlDocument.append(mLocalVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getName())
+                .append(", община ")
+                .append(mLocalVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getMunicipality())
+                .append(", област ")
+                .append(mLocalVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getArea())
+                .append(", No. ЖО: ")
+                .append(mLocalVisitProtocol.getFarm().getBreedingPlaceNumber());
         htmlDocument.append("</p><b><table style=\"width:100%\">");
 
         insertTableHeader(htmlDocument);
@@ -365,12 +465,18 @@ public class GoatsListsFromBookActivity  extends AppCompatActivity {
         protected Boolean doInBackground(Void... params) {
             final boolean[] success = {false};
 
-            //String key = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(mVisitProtocol.getFarm().getId())+"_"+String.valueOf(mVisitProtocol.getDateAddedToSystem().getTime());
-            //Set<String> gs = mSharedPreferences.getStringSet(key, new HashSet<String>());
+            /*listG = dbHelper.getGoatsForFarmSelectedColumns(mVisitProtocol.getFarm());
+            sortSingleList(listG);
+            bookGLadapter = new GoatsListsFromBookAdapter(GoatsListsFromBookActivity.this, listG);*/
 
-            listG = dbHelper.getGoatsForFarmSelectedColumns(mVisitProtocol.getFarm());
+            if(isProtocolSynced){
+                listG = dbHelper.getGoatsForFarmSelectedColumns(mVisitProtocol.getFarm());
+            }else{
+                listG = dbHelper.getGoatsForFarmSelectedColumns(mLocalVisitProtocol.getFarm());
+            }
             sortSingleList(listG);
             bookGLadapter = new GoatsListsFromBookAdapter(GoatsListsFromBookActivity.this, listG);
+
             return success[0];
         }
 
@@ -383,10 +489,28 @@ public class GoatsListsFromBookActivity  extends AppCompatActivity {
         protected void onPostExecute(Boolean success) {
 
             listViewGoats.setAdapter(bookGLadapter);
-            setTitle("Списък с "+bookGLadapter.getCount()+" кози за ферма "+mVisitProtocol.getFarm().getCompanyName()+" гр./с."
+            /*setTitle("Списък с "+bookGLadapter.getCount()+" кози за ферма "+mVisitProtocol.getFarm().getCompanyName()+" гр./с."
                 +mVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getName()+", общ. "
                 +mVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getMunicipality()+", област "
-                +mVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getArea());
+                +mVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getArea());*/
+
+            if(isProtocolSynced) {
+                setTitle("Списък с " + bookGLadapter.getCount() + " кози за ферма " + mVisitProtocol.getFarm().getCompanyName() + " гр./с."
+                        + mVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getName() + ", общ. "
+                        + mVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getMunicipality() + ", област "
+                        + mVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getArea());
+            }else{
+                City cty = null;
+                try {
+                    cty = dbHelper.getDaoCity().queryForId(mLocalVisitProtocol.getFarm().getBreedingPlaceAddress().getCity().getId());
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                setTitle("Списък с " + bookGLadapter.getCount() + " кози за ферма " + mLocalVisitProtocol.getFarm().getCompanyName() + " гр./с."
+                        + cty.getName() + ", общ. "
+                        + cty.getMunicipality() + ", област "
+                        + cty.getArea());
+            }
 
             if(mProgressDialog.isShowing()){
                 mProgressDialog.cancel();

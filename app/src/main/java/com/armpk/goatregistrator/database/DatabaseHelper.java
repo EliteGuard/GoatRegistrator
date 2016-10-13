@@ -1,12 +1,14 @@
 package com.armpk.goatregistrator.database;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.armpk.goatregistrator.R;
 import com.armpk.goatregistrator.database.enums.LocationType;
 import com.armpk.goatregistrator.database.mobile.LocalGoat;
+import com.armpk.goatregistrator.database.mobile.LocalGoatMeasurement;
 import com.armpk.goatregistrator.database.mobile.LocalVisitProtocol;
 import com.armpk.goatregistrator.database.mobile.LocalVisitProtocolVisitActivity;
 import com.armpk.goatregistrator.utilities.Globals;
@@ -32,14 +34,16 @@ import java.lang.reflect.Type;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
 
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "armpk_goat_registrator.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 12;
+    private static final int DATABASE_VERSION = 13;
 
     // the DAO object we use to access the SimpleData table
     private Dao<Address, Long> daoAddress = null;
@@ -66,8 +70,16 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
     private Dao<VisitProtocol, Long> daoVisitProtocol = null;
     private Dao<VisitProtocolVisitActivity, Long> daoVisitProtocolVisitActivity = null;
 
+    private Dao<LocalGoat, Long> daoLocalGoat = null;
+    private Dao<LocalVisitProtocol, Long> daoLocalVisitProtocol = null;
+    private Dao<LocalVisitProtocolVisitActivity, Long> daoLocalVisitProtocolVisitActivity = null;
+    private Dao<LocalGoatMeasurement, Long> daoLocalGoatMeasurements = null;
+
+    private Context mContext;
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION, R.raw.ormlite_config);
+        this.mContext = context;
     }
 
     @Override
@@ -114,18 +126,18 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
 
             while (++oldVersion <= newVersion) {
                 switch (oldVersion) {
-                    case 12: {
+                    case 13: {
 
                         TableUtils.dropTable(connectionSource, LocalGoat.class, true);
                         TableUtils.dropTable(connectionSource, LocalVisitProtocol.class, true);
                         TableUtils.dropTable(connectionSource, LocalVisitProtocolVisitActivity.class, true);
-                        //TableUtils.dropTable(connectionSource, LocalGoatMeasurement.class, false);
+                        TableUtils.dropTable(connectionSource, LocalGoatMeasurement.class, true);
 
-                        /*TableUtils.createTableIfNotExists(connectionSource, LocalGoat.class);
+                        TableUtils.createTableIfNotExists(connectionSource, LocalGoat.class);
                         TableUtils.createTableIfNotExists(connectionSource, LocalVisitProtocol.class);
                         TableUtils.createTableIfNotExists(connectionSource, LocalVisitProtocolVisitActivity.class);
-                        //TableUtils.createTableIfNotExists(connectionSource, LocalGoatMeasurement.class);
-                        applyUpdate2();*/
+                        TableUtils.createTableIfNotExists(connectionSource, LocalGoatMeasurement.class);
+                        applyUpdate2();
                         break;
                     }
                 }
@@ -134,6 +146,84 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
+        }
+    }
+
+    private void applyUpdate2(){
+        SharedPreferences mSharedPreferences = mContext.getSharedPreferences(mContext.getPackageName(), Context.MODE_PRIVATE);
+        Set<String> tempProtocols = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
+        try {
+            for (String visitProtocol : tempProtocols) {
+                VisitProtocol vp = Globals.jsonToObject(new JSONObject(visitProtocol), VisitProtocol.class);
+                LocalVisitProtocol lvp = new LocalVisitProtocol();
+
+                if(vp.getFarm()!=null) lvp.setFarm(vp.getFarm());
+                if(vp.getVisitDate()!=null) lvp.setVisitDate(vp.getVisitDate());
+                if(vp.getNotes()!=null) lvp.setNotes(vp.getNotes());
+                if(vp.getEmployFirst()!=null) lvp.setEmployFirst(vp.getEmployFirst());
+                if(vp.getEmploySecond()!=null) lvp.setEmploySecond(vp.getEmploySecond());
+                if(vp.getDateAddedToSystem()!=null) lvp.setDateAddedToSystem(vp.getDateAddedToSystem());
+                if(vp.getDateLastUpdated()!=null) lvp.setDateLastUpdated(vp.getDateLastUpdated());
+                if(vp.getLastUpdatedByUser()!=null) lvp.setLastUpdatedByUser(vp.getLastUpdatedByUser());
+                getDaoLocalVisitProtocol().createIfNotExists(lvp);
+
+
+                String keyActivities = Globals.TEMPORARY_ACTIVITIES_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
+                Set<String> pva = mSharedPreferences.getStringSet(keyActivities, new HashSet<String>());
+                for(String s : pva){
+                    //VisitActivity va  = Globals.jsonToObject(new JSONObject(s), VisitActivity.class);
+                    VisitActivity va = getDaoVisitActivity().queryForId(Integer.valueOf(s));
+                    LocalVisitProtocolVisitActivity lvpva = new LocalVisitProtocolVisitActivity();
+
+                    lvpva.setVisitActivity(va);
+                    lvpva.setLocalVisitProtocol(lvp);
+
+                    QueryBuilder<LocalVisitProtocolVisitActivity, Long> qb = getDaoLocalVisitProtocolVisitActivity().queryBuilder();
+                    long rows = qb.where().eq("localVisitProtocol_id", lvpva.getLocalVisitProtocol().getId())
+                            .and()
+                            .eq("visitActivity_id", lvpva.getVisitActivity().getId())
+                            .countOf();
+                    if(rows<1){
+                        getDaoLocalVisitProtocolVisitActivity().create(lvpva);
+                    }
+                }
+
+                String keyGoats = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
+                Set<String> pg = mSharedPreferences.getStringSet(keyGoats, new HashSet<String>());
+                for(String sg : pg) {
+                    Goat keygoat = Globals.jsonToObject(new JSONObject(sg), Goat.class);
+
+                    LocalGoat lg = new LocalGoat(keygoat);
+                    lg.setLocalVisitProtocol(lvp);
+
+
+                    StringBuffer key = new StringBuffer();
+                    if(keygoat.getFirstVeterinaryNumber()!=null) key.append(keygoat.getFirstVeterinaryNumber());
+                    if(keygoat.getSecondVeterinaryNumber()!=null) key.append(keygoat.getSecondVeterinaryNumber());
+                    if(keygoat.getFirstBreedingNumber()!=null) key.append(keygoat.getFirstBreedingNumber());
+                    if(keygoat.getSecondBreedingNumber()!=null) key.append(keygoat.getSecondBreedingNumber());
+                    if(mSharedPreferences.getString(key.toString(), "").length()>0){
+                        JSONArray measurements = new JSONArray(mSharedPreferences.getString(key.toString(), ""));
+                        for(int i=0; i<measurements.length(); i++){
+                            LocalGoatMeasurement lgm = new LocalGoatMeasurement();
+                            GoatMeasurement gm = Globals.jsonToObject(measurements.getJSONObject(i), GoatMeasurement.class);
+                            lgm.setLocalGoat(lg);
+                            lgm.setMeasurement(gm.getMeasurement());
+                            getDaoLocalGoatMeasurements().create(lgm);
+                        }
+                    }
+
+                    key.append("_farm");
+                    JSONObject farmJO = new JSONObject(mSharedPreferences.getString(key.toString(), Globals.objectToJson(vp.getFarm()).toString()));
+                    Long farmId = farmJO.optLong("id");
+                    lg.setFarm(getDaoFarm().queryForId(farmId));
+                    getDaoLocalGoat().create(lg);
+                }
+
+            }
+            //sortSingleListByLastUpdated(localVPs);
+        } catch (JSONException | SQLException e){
+            e.printStackTrace();
         }
     }
 
@@ -306,6 +396,34 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
         return daoVisitProtocolVisitActivity;
     }
 
+    public Dao<LocalGoat, Long> getDaoLocalGoat() throws SQLException {
+        if (daoLocalGoat == null) {
+            daoLocalGoat = getDao(LocalGoat.class);
+        }
+        return daoLocalGoat;
+    }
+
+    public Dao<LocalVisitProtocol, Long> getDaoLocalVisitProtocol() throws SQLException {
+        if (daoLocalVisitProtocol == null) {
+            daoLocalVisitProtocol = getDao(LocalVisitProtocol.class);
+        }
+        return daoLocalVisitProtocol;
+    }
+
+    public Dao<LocalVisitProtocolVisitActivity, Long> getDaoLocalVisitProtocolVisitActivity() throws SQLException {
+        if (daoLocalVisitProtocolVisitActivity == null) {
+            daoLocalVisitProtocolVisitActivity = getDao(LocalVisitProtocolVisitActivity.class);
+        }
+        return daoLocalVisitProtocolVisitActivity;
+    }
+
+    public Dao<LocalGoatMeasurement, Long> getDaoLocalGoatMeasurements () throws SQLException {
+        if(daoLocalGoatMeasurements == null){
+            daoLocalGoatMeasurements = getDao(LocalGoatMeasurement.class);
+        }
+        return daoLocalGoatMeasurements;
+    }
+
     /**
      * Close the database connections and clear any cached DAOs.
      */
@@ -337,6 +455,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
         daoVisitActivity = null;
         daoVisitProtocol = null;
         daoVisitProtocolVisitActivity = null;
+
+        daoLocalGoat = null;
+        daoLocalVisitProtocol = null;
+        daoLocalVisitProtocolVisitActivity = null;
+        daoLocalGoatMeasurements = null;
     }
 
     public void initBreeds(){
@@ -1045,6 +1168,17 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
             VisitProtocol vp = Globals.jsonToObject(visitProtocol, VisitProtocol.class);
 
             if(vp!=null) {
+
+                //update local visit protocol
+                LocalVisitProtocol lvp = daoLocalVisitProtocol.queryBuilder()
+                        .where()
+                        .eq("dateAddedToSystem", vp.getDateAddedToSystem())
+                        .and()
+                        .eq("farm_id", vp.getFarm().getId()).queryForFirst();
+                if(lvp!=null) lvp.setRealId(vp.getId());
+                daoLocalVisitProtocol.update(lvp);
+
+
                 List<VisitActivity> currentVisitActivities = new ArrayList<VisitActivity>();
                 JSONArray visitActivitiesJson = visitProtocol.getJSONArray("lst_visitActivities");
                 if (visitActivitiesJson != null) {

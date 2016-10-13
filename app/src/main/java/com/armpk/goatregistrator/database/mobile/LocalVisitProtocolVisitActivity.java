@@ -17,7 +17,7 @@ public class LocalVisitProtocolVisitActivity implements Serializable {
 
     @SerializedName("id")
     @DatabaseField(generatedId = true)
-    private Long _id;
+    private transient Long _id;
 
     @DatabaseField (foreign = true, foreignAutoRefresh = true)
     private LocalVisitProtocol localVisitProtocol;

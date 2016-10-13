@@ -18,9 +18,12 @@ public class LocalVisitProtocol implements Serializable {
      */
     private static final long serialVersionUID = -8426513707190757227L;
 
-    @SerializedName("id")
     @DatabaseField(generatedId = true)
-    private Long _id;
+    private transient Long _id;
+
+    @SerializedName("id")
+    @DatabaseField
+    private Long real_id;
 
     @DatabaseField (foreign = true, foreignAutoRefresh = true)
     private Farm farm;
@@ -58,6 +61,14 @@ public class LocalVisitProtocol implements Serializable {
 
     public void setId(Long id) {
         this._id = id;
+    }
+
+    public Long getRealId() {
+        return real_id;
+    }
+
+    public void setRealId(Long id) {
+        this.real_id = id;
     }
 
     public Farm getFarm() {

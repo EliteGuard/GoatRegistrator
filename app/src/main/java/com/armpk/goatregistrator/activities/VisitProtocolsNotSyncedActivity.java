@@ -18,15 +18,21 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.armpk.goatregistrator.R;
+import com.armpk.goatregistrator.adapters.LocalVisitProtocolSearchResultAdapter;
 import com.armpk.goatregistrator.adapters.VisitProtocolSearchResultAdapter;
 import com.armpk.goatregistrator.database.DatabaseHelper;
 import com.armpk.goatregistrator.database.Farm;
 import com.armpk.goatregistrator.database.Goat;
 import com.armpk.goatregistrator.database.VisitActivity;
 import com.armpk.goatregistrator.database.VisitProtocol;
+import com.armpk.goatregistrator.database.mobile.LocalGoat;
+import com.armpk.goatregistrator.database.mobile.LocalGoatMeasurement;
+import com.armpk.goatregistrator.database.mobile.LocalVisitProtocol;
+import com.armpk.goatregistrator.database.mobile.LocalVisitProtocolVisitActivity;
 import com.armpk.goatregistrator.utilities.Globals;
 import com.armpk.goatregistrator.utilities.RestConnection;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.stmt.DeleteBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,19 +54,20 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
     private static final String ARG_FARM = "farm";
     private static final String ARG_VISIT_PROTOCOL = "visit_protocol";
     private static final String ARG_SYNCED = "visit_protocol_synced";
+    private static final String ARG_LOCAL_VP_ID = "local_visit_protocol_id";
 
     private DatabaseHelper dbHelper;
     private SharedPreferences mSharedPreferences;
 
     private ListView listViewResults;
-    private VisitProtocolSearchResultAdapter adapterResults;
-    private List<VisitProtocol> listVisitProtocol;
+    private LocalVisitProtocolSearchResultAdapter adapterResults;
+    private List<LocalVisitProtocol> listVisitProtocol;
     //Set<String> tempProtocols;
 
     ArrayList<String> orderedGoatsForUpload = new ArrayList<String>();
     int goatCounter = 1;
 
-    VisitProtocol mVPtoDELETE;
+    LocalVisitProtocol mVPtoDELETE;
 
     HashMap<String, VisitActivity> mapVisitActivities;
 
@@ -121,35 +128,34 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        final VisitProtocol vp = mVPtoDELETE = (VisitProtocol) listViewResults.getAdapter().getItem(info.position);
+        final LocalVisitProtocol lvp = mVPtoDELETE = (LocalVisitProtocol) listViewResults.getAdapter().getItem(info.position);
         switch (item.getItemId()) {
             case R.id.upload_protocol:
-                uploadProtocol(vp);
+                //uploadProtocol(vp);
                 return true;
             case R.id.continue_protocol:
                 Intent intent = new Intent(this, GoatAddReaderActivity.class);
                 Bundle args = new Bundle();
-                args.putSerializable(ARG_VISIT_PROTOCOL, vp);
-                args.putSerializable(ARG_FARM, vp.getFarm());
+                args.putSerializable(ARG_VISIT_PROTOCOL, lvp);
+                args.putSerializable(ARG_FARM, lvp.getFarm());
                 intent.putExtras(args);
                 startActivity(intent);
-                //finish();
                 return true;
             case R.id.show_goats_for_farm:
                 Intent listsFromBook = new Intent(this, GoatsListsFromBookActivity.class);
                 Bundle argsLists = new Bundle();
-                argsLists.putSerializable(ARG_VISIT_PROTOCOL, vp);
+                argsLists.putSerializable(ARG_VISIT_PROTOCOL, lvp);
                 listsFromBook.putExtras(argsLists);
                 startActivity(listsFromBook);
                 return true;
             case R.id.show_goats_lists:
                 Intent lists = new Intent(this, VisitProtocolGoatsListsActivity.class);
                 Bundle args_lists = new Bundle();
-                args_lists.putSerializable(ARG_VISIT_PROTOCOL, vp);
+                args_lists.putSerializable(ARG_VISIT_PROTOCOL, lvp);
                 args_lists.putBoolean(ARG_SYNCED, false);
+                args_lists.putLong(ARG_LOCAL_VP_ID, lvp.getId());
                 lists.putExtras(args_lists);
                 startActivity(lists);
-                //finish();
                 return true;
             case R.id.delete_protocol:
 
@@ -159,7 +165,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                 alert.setPositiveButton("ИЗТРИЙ", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        try {
+                        /*try {
                             Set<String> tempProtocols = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
                             if(tempProtocols.contains(Globals.objectToJson(vp).toString())) {
                                 if(tempProtocols.remove(Globals.objectToJson(vp).toString())){
@@ -174,7 +180,33 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                             e.printStackTrace();
                         }
                         listVisitProtocol.remove(vp);
-                        adapterResults.notifyDataSetChanged();
+                        adapterResults.notifyDataSetChanged();*/
+
+                        try {
+
+                            DeleteBuilder<LocalVisitProtocolVisitActivity, Long> dbLvpLa = dbHelper.getDaoLocalVisitProtocolVisitActivity().deleteBuilder();
+                            dbLvpLa.where().eq("localVisitProtocol_id", lvp.getId());
+                            dbLvpLa.delete();
+
+                            for(LocalGoat lg : dbHelper.getDaoLocalGoat().queryBuilder().where().eq("localVisitProtocol_id", lvp.getId()).query()){
+                                for(LocalGoatMeasurement lgm : lg.getLst_goatMeasurements()) {
+                                    dbHelper.getDaoLocalGoatMeasurements().delete(lgm);
+                                }
+                                dbHelper.getDaoLocalGoat().delete(lg);
+                            }
+
+                            DeleteBuilder<LocalGoat, Long> dbLg = dbHelper.getDaoLocalGoat().deleteBuilder();
+                            dbLg.where().eq("localVisitProtocol_id", lvp.getId());
+                            dbLg.delete();
+
+                            if(dbHelper.getDaoLocalVisitProtocol().deleteById(lvp.getId())==1){
+                                listVisitProtocol.remove(lvp);
+                                adapterResults.notifyDataSetChanged();
+                            }
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
                         dialog.dismiss();
                     }
                 });
@@ -514,7 +546,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
         protected Boolean doInBackground(Void... params) {
             final boolean[] success = {false};
 
-            try {
+            /*try {
                 Set<String> tempProtocols = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
                 for (String visitProtocol : tempProtocols) {
                     listVisitProtocol.add(loadProtocol(visitProtocol));
@@ -522,7 +554,12 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            sortSingleListByLastUpdated(listVisitProtocol);
+            sortSingleListByLastUpdated(listVisitProtocol);*/
+            try {
+                listVisitProtocol = dbHelper.getDaoLocalVisitProtocol().queryBuilder().orderBy("dateLastUpdated", false).query();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
 
 
             return success[0];
@@ -537,7 +574,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
         protected void onPostExecute(Boolean success) {
 
             if(listVisitProtocol.size()>0){
-                adapterResults = new VisitProtocolSearchResultAdapter(VisitProtocolsNotSyncedActivity.this, listVisitProtocol);
+                adapterResults = new LocalVisitProtocolSearchResultAdapter(VisitProtocolsNotSyncedActivity.this, listVisitProtocol);
                 listViewResults.setAdapter(adapterResults);
                 adapterResults.notifyDataSetChanged();
             }

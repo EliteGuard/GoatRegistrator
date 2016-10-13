@@ -67,6 +67,9 @@ import com.armpk.goatregistrator.database.VisitProtocol;
 import com.armpk.goatregistrator.database.enums.Maturity;
 import com.armpk.goatregistrator.database.enums.MeasurementType;
 import com.armpk.goatregistrator.database.enums.Sex;
+import com.armpk.goatregistrator.database.mobile.LocalGoat;
+import com.armpk.goatregistrator.database.mobile.LocalGoatMeasurement;
+import com.armpk.goatregistrator.database.mobile.LocalVisitProtocol;
 import com.armpk.goatregistrator.fragments.DatePickerFragment;
 import com.armpk.goatregistrator.services.BluetoothService;
 import com.armpk.goatregistrator.utilities.Globals;
@@ -114,14 +117,14 @@ public class GoatAddReaderActivity extends AppCompatActivity
     private static final String ARG_FARM = "farm";
     private static final String ARG_VISIT_PROTOCOL = "visit_protocol";
 
-    private VisitProtocol mVisitProtocol;
+    private LocalVisitProtocol mLocalVisitProtocol;
 
     GoatStatus goatStatus = null;
     GoatStatus tempGoatStatus = null;
 
-    private String GOATS_KEY;
-    private Set<String> GOATS_SET;
-    private ArrayList<Goat> GOATS_ARRAY;
+    //private String GOATS_KEY;
+    //private Set<String> GOATS_SET;
+    private ArrayList<LocalGoat> GOATS_ARRAY;
     private int currentIndex = -1;
 
     private Menu mMainMenu;
@@ -339,7 +342,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
 
 
         if (getIntent().getExtras()!=null) {
-            mVisitProtocol = (VisitProtocol) getIntent().getExtras().getSerializable(ARG_VISIT_PROTOCOL);
+            mLocalVisitProtocol = (LocalVisitProtocol) getIntent().getExtras().getSerializable(ARG_VISIT_PROTOCOL);
             mFarmRead = mFarmRead2 = (Farm) getIntent().getExtras().getSerializable(ARG_FARM);
             //mFarmFound = (Farm) getIntent().getExtras().getSerializable(ARG_FARM);
             /*initFarmRead();
@@ -367,7 +370,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
         mMenuNext = menu.findItem(R.id.action_next);
 
         if(mMenuPrevious!=null && mMenuNext!=null){
-            if(GOATS_SET.size()>0){
+            if(GOATS_ARRAY.size()>0){
                 mMenuPrevious.setEnabled(true);
             }else{
                 mMenuPrevious.setEnabled(false);
@@ -895,9 +898,35 @@ public class GoatAddReaderActivity extends AppCompatActivity
     }
 
 
-    private void saveTemporaryBonitirovka(Goat goat){
+    private void saveTemporaryBonitirovka(LocalGoat localGoat){
 
-        GoatMeasurement goatBonit1 = new GoatMeasurement();
+        try {
+            QueryBuilder<Measurement, Integer> mqb = dbHelper.getDaoMeasurement().queryBuilder();
+            mqb.selectColumns("_id", "name", "codeName", "minValue", "maxValue", "allowedValues", "description")
+                    .orderBy("name", true)
+                    .where()
+                    .eq("type", MeasurementType.BONITIROVKA);
+
+            QueryBuilder<LocalGoatMeasurement, Long> lgmQb = dbHelper.getDaoLocalGoatMeasurements().queryBuilder();
+            lgmQb.where()
+                    .eq("goat_id", localGoat);
+
+            lgmQb.join(mqb);
+
+            List<LocalGoatMeasurement> goatListBonits = lgmQb.query();
+
+            if(goatListBonits.size()>0){
+
+            }else{
+
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+        /*GoatMeasurement goatBonit1 = new GoatMeasurement();
         goatBonit1.setMeasurement(measBonitirovka.get(0));
         goatBonit1.setGoat(goat);
         goatBonit1.setValue(mSeekBonitirovka1.getProgress());
@@ -938,12 +967,49 @@ public class GoatAddReaderActivity extends AppCompatActivity
             Globals.savePreferences(key.toString(), measurements.toString(), this);
         } catch (JSONException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
-    private void loadTemporaryBonitirovka(Goat keygoat){
+    private void loadTemporaryBonitirovka(LocalGoat localGoat){
         try{
-            StringBuffer key = new StringBuffer();
+
+            QueryBuilder<Measurement, Integer> mqb = dbHelper.getDaoMeasurement().queryBuilder();
+            mqb.selectColumns("_id", "name", "codeName", "minValue", "maxValue", "allowedValues", "description")
+                    .orderBy("name", true)
+                    .where()
+                    .eq("type", MeasurementType.BONITIROVKA);
+
+            QueryBuilder<LocalGoatMeasurement, Long> lgmQb = dbHelper.getDaoLocalGoatMeasurements().queryBuilder();
+            lgmQb.where()
+                    .eq("goat_id", localGoat);
+
+            lgmQb.join(mqb);
+
+            List<LocalGoatMeasurement> goatListBonits = lgmQb.query();
+
+
+            mTextBonititirovka1.setText(getString(R.string.text_two_values_with_sc_delimiter,
+                    goatListBonits.get(0).getMeasurement().getName(), String.valueOf(goatListBonits.get(0).getValue())));
+            mSeekBonitirovka1.setProgress(goatListBonits.get(0).getValue());
+
+            mTextBonititirovka2.setText(getString(R.string.text_two_values_with_sc_delimiter,
+                    goatListBonits.get(1).getMeasurement().getName(), String.valueOf(goatListBonits.get(1).getValue())));
+            mSeekBonitirovka2.setProgress(goatListBonits.get(1).getValue());
+
+            mTextBonititirovka3.setText(getString(R.string.text_two_values_with_sc_delimiter,
+                    goatListBonits.get(2).getMeasurement().getName(), String.valueOf(goatListBonits.get(2).getValue())));
+            mSeekBonitirovka3.setProgress(goatListBonits.get(2).getValue());
+
+            mTextBonititirovka4.setText(getString(R.string.text_two_values_with_sc_delimiter,
+                    goatListBonits.get(3).getMeasurement().getName(), String.valueOf(goatListBonits.get(3).getValue())));
+            mSeekBonitirovka4.setProgress(goatListBonits.get(3).getValue());
+
+            mTextBonititirovka5.setText(getString(R.string.text_two_values_with_sc_delimiter,
+                    goatListBonits.get(4).getMeasurement().getName(), String.valueOf(goatListBonits.get(4).getValue())));
+            mSeekBonitirovka5.setProgress(goatListBonits.get(4).getValue());
+
+
+            /*StringBuffer key = new StringBuffer();
             if(keygoat.getFirstVeterinaryNumber()!=null) key.append(keygoat.getFirstVeterinaryNumber());
             if(keygoat.getSecondVeterinaryNumber()!=null) key.append(keygoat.getSecondVeterinaryNumber());
             if(keygoat.getFirstBreedingNumber()!=null) key.append(keygoat.getFirstBreedingNumber());
@@ -976,8 +1042,8 @@ public class GoatAddReaderActivity extends AppCompatActivity
                         measurement5.getMeasurement().getName(), String.valueOf(measurement5.getValue())));
                 mSeekBonitirovka5.setProgress(measurement5.getValue());
 
-            }
-        } catch (JSONException e) {
+            }*/
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -985,7 +1051,11 @@ public class GoatAddReaderActivity extends AppCompatActivity
     private void updateVisitProtocolModified() throws SQLException, JSONException {
         Set<String> tempProtocols = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
 
-        if(tempProtocols.contains(Globals.objectToJson(mVisitProtocol).toString())) {
+        mLocalVisitProtocol.setLastUpdatedByUser(dbHelper.getDaoUser().queryForId(mSharedPreferences.getLong(Globals.SETTING_ACTIVE_USER_ID, 1)));
+        mLocalVisitProtocol.setDateLastUpdated(new Date(System.currentTimeMillis()));
+        dbHelper.getDaoLocalVisitProtocol().update(mLocalVisitProtocol);
+
+        /*if(tempProtocols.contains(Globals.objectToJson(mVisitProtocol).toString())) {
             if(tempProtocols.remove(Globals.objectToJson(mVisitProtocol).toString())){
                 mVisitProtocol.setLastUpdatedByUser(dbHelper.getDaoUser().queryForId(mSharedPreferences.getLong(Globals.SETTING_ACTIVE_USER_ID, 1)));
                 mVisitProtocol.setDateLastUpdated(new Date(System.currentTimeMillis()));
@@ -994,7 +1064,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
                 newPs.add(Globals.objectToJson(mVisitProtocol).toString());
                 Globals.savePreferences(Globals.TEMPORARY_VISIT_PROTOCOLS, newPs, this);
             }
-        }
+        }*/
     }
 
     private void initMoveButtons(){
@@ -1088,7 +1158,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
 
             getSupportActionBar().setTitle("Коза "+(currentIndex+1)+"/"+GOATS_ARRAY.size());
 
-            Goat goat = GOATS_ARRAY.get(currentIndex);
+            LocalGoat goat = GOATS_ARRAY.get(currentIndex);
 
             if (goat.getFirstVeterinaryNumber() != null) {
                 mEditTextVetCode1.setText(goat.getFirstVeterinaryNumber());
@@ -1184,7 +1254,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
             mMenuPrevious.setEnabled(true);
             mButtonAdd.setEnabled(false);
 
-            Goat goat = GOATS_ARRAY.get(currentIndex);
+            LocalGoat goat = GOATS_ARRAY.get(currentIndex);
 
             if(goat.getFirstVeterinaryNumber()!=null){
                 mEditTextVetCode1.setText(goat.getFirstVeterinaryNumber());
@@ -1950,7 +2020,19 @@ public class GoatAddReaderActivity extends AppCompatActivity
         protected Boolean doInBackground(Void... params) {
             final boolean[] success = {false};
 
-            GOATS_KEY = Globals.TEMPORARY_GOATS_FOR_PROTOCOL + String.valueOf(mVisitProtocol.getFarm().getId()) + "_" + String.valueOf(mVisitProtocol.getDateAddedToSystem().getTime());
+            GOATS_ARRAY = new ArrayList<LocalGoat>();
+            try {
+
+                GOATS_ARRAY = new ArrayList<LocalGoat>(dbHelper.getDaoLocalGoat().queryBuilder()
+                        .orderBy("dateLastUpdated", true)
+                        .where()
+                        .eq("localVisitProtocol_id", mLocalVisitProtocol.getId()).query());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            currentIndex = GOATS_ARRAY.size();
+            /*GOATS_KEY = Globals.TEMPORARY_GOATS_FOR_PROTOCOL + String.valueOf(mVisitProtocol.getFarm().getId()) + "_" + String.valueOf(mVisitProtocol.getDateAddedToSystem().getTime());
             GOATS_SET = mSharedPreferences.getStringSet(GOATS_KEY, new HashSet<String>());
 
             GOATS_ARRAY = new ArrayList<Goat>();
@@ -1963,17 +2045,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
                 e.printStackTrace();
             }
             sortSingleListByLastUpdated(GOATS_ARRAY);
-            currentIndex = GOATS_ARRAY.size();
-
-            /*if(mMenuPrevious!=null && mMenuNext!=null){
-                if(GOATS_SET.size()>0){
-                    mMenuPrevious.setEnabled(true);
-                }else{
-                    mMenuPrevious.setEnabled(false);
-                }
-                mMenuNext.setEnabled(false);
-            }*/
-
+            currentIndex = GOATS_ARRAY.size();*/
 
             return success[0];
         }

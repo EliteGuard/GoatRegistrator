@@ -29,6 +29,8 @@ import com.armpk.goatregistrator.database.GoatFromVetIs;
 import com.armpk.goatregistrator.database.VisitProtocol;
 import com.armpk.goatregistrator.database.enums.LocationType;
 import com.armpk.goatregistrator.database.enums.Sex;
+import com.armpk.goatregistrator.database.mobile.LocalGoat;
+import com.armpk.goatregistrator.database.mobile.LocalVisitProtocol;
 import com.armpk.goatregistrator.utilities.Globals;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.SelectArg;
@@ -56,6 +58,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
     private static final String ARG_VISIT_PROTOCOL = "visit_protocol";
     private static final String ARG_SYNCED = "visit_protocol_synced";
+    private static final String ARG_LOCAL_VP_ID = "local_visit_protocol_id";
 
     private DatabaseHelper dbHelper;
     private SharedPreferences mSharedPreferences;
@@ -64,6 +67,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
     private Button mButtonPrint;
     private VisitProtocolGoatsListsAdapter vpGLadapter;
 
+    private LocalVisitProtocol mLocalVisitProtocol;
     private VisitProtocol mVisitProtocol;
     private boolean isProtocolSynced = false;
     private WebView mWebView;
@@ -97,13 +101,22 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         mButtonPrint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                printLists();
+                //if(isProtocolSynced){
+                    printLists();
+                /*}else {
+                    printLocalLists();
+                }*/
             }
         });
         listViewGoats = (ListView)findViewById(R.id.listMain);
         if (getIntent().getExtras()!=null) {
-            mVisitProtocol = (VisitProtocol) getIntent().getExtras().getSerializable(ARG_VISIT_PROTOCOL);
             isProtocolSynced = getIntent().getExtras().getBoolean(ARG_SYNCED);
+            if(isProtocolSynced){
+                mVisitProtocol = (VisitProtocol) getIntent().getExtras().getSerializable(ARG_VISIT_PROTOCOL);
+            }else{
+                mLocalVisitProtocol = (LocalVisitProtocol) getIntent().getExtras().getSerializable(ARG_VISIT_PROTOCOL);
+                mLocalVisitProtocol.setId(getIntent().getExtras().getLong(ARG_LOCAL_VP_ID));
+            }
             InitActivity ia = new InitActivity(this);
             ia.execute((Void) null);
         }else{
@@ -232,9 +245,13 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
     private void createTable(StringBuffer htmlDocument, Farm farm){
         htmlDocument.append("<p><br><br><br><br><br><b>");
-        htmlDocument.append("Списък с ").append(vpGLadapter.getCount() - 6).append(" кози за Протокол за посещение от ")
-                .append(Globals.getDateShort(mVisitProtocol.getVisitDate()))
-                .append(" на: <br>")
+        htmlDocument.append("Списък с ").append(vpGLadapter.getCount() - 6).append(" кози за Протокол за посещение от ");
+        if(isProtocolSynced) {
+            htmlDocument.append(Globals.getDateShort(mVisitProtocol.getVisitDate()));
+        }else{
+            htmlDocument.append(Globals.getDateShort(mLocalVisitProtocol.getVisitDate()));
+        }
+        htmlDocument.append(" на: <br>")
                 .append(farm.getCompanyName())
                 .append(", <br>");
         if(farm.getBreedingPlaceAddress().getCity().getLocationType()== LocationType.CITY){
@@ -743,7 +760,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         try {
             for (Goat goat : goatsToProcess) {
 
-                StringBuffer key1 = new StringBuffer();
+                /*StringBuffer key1 = new StringBuffer();
                 if (goat.getFirstVeterinaryNumber() != null)
                     key1.append(goat.getFirstVeterinaryNumber());
                 if (goat.getSecondVeterinaryNumber() != null)
@@ -757,11 +774,21 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 if(mSharedPreferences.getString(key1.toString(), "").length()>0){
                     farm1 = dbHelper.getDaoFarm().queryForId(
                             new JSONObject(mSharedPreferences.getString(key1.toString(), "")).getLong("id"));
-                    /*farm1 = Globals.jsonToObject(
-                            new JSONObject(mSharedPreferences.getString(key1.toString(), "")),
-                            Farm.class);*/
                 }else{
                     farm1 = mVisitProtocol.getFarm();
+                }*/
+                Farm farm1 = null;
+                List<LocalGoat> llg = dbHelper.getDaoLocalGoat().queryBuilder()
+                        .where()
+                        .eq("localVisitProtocol_id", mLocalVisitProtocol.getId()).query();
+                if(llg.size()==1){
+                    farm1 = dbHelper.getDaoFarm().queryForId(llg.get(0).getFarm().getId());
+                }else {
+                    if(isProtocolSynced) {
+                        farm1 = mVisitProtocol.getFarm();
+                    }else{
+                        farm1 = mLocalVisitProtocol.getFarm();
+                    }
                 }
 
                 List<Goat> list = listsByFarm.get(farm1.getId());
@@ -770,7 +797,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 }
                 list.add(goat);
             }
-        } catch (JSONException | SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -797,7 +824,78 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(Void... params) {
             final boolean[] success = {false};
-            List<String> readyForProcess = null;
+            ArrayList<Goat> goatsToProcess = new ArrayList<Goat>();
+            ArrayList<LocalGoat> localReadyforProces = new ArrayList<LocalGoat>();
+
+            if(isProtocolSynced){
+
+                try {
+
+                    localReadyforProces = new ArrayList<LocalGoat>(
+                            dbHelper.getDaoLocalVisitProtocol().queryBuilder()
+                                    .where()
+                                    .eq("real_id", mVisitProtocol.getId())
+                                    .queryForFirst().getLst_localGoat()
+                    );
+
+                    for(LocalGoat lg : localReadyforProces){
+                        lg.getFarm().setLst_visitProtocol(null);
+                        lg.setLocalVisitProtocol(null);
+                        goatsToProcess.add(Globals.jsonToObject(
+                                Globals.objectToJson(lg), Goat.class
+                        ));
+                    }
+                } catch (SQLException | JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }else{
+                try {
+                    List<LocalVisitProtocol> llvp = dbHelper.getDaoLocalVisitProtocol().queryForAll();
+
+                    localReadyforProces = new ArrayList<LocalGoat>(
+                            dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat());
+
+                    for(LocalGoat lg : localReadyforProces){
+                        lg.getFarm().setLst_visitProtocol(null);
+                        lg.setLocalVisitProtocol(null);
+                        goatsToProcess.add(Globals.jsonToObject(
+                                Globals.objectToJson(lg), Goat.class
+                                ));
+                    }
+                } catch (SQLException | JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            distributeToListsByFarm(goatsToProcess);
+
+            vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
+            //vpGLadapter.addSectionHeaderItem(1);
+            vpGLadapter.addAll(list1);
+            vpGLadapter.addSectionHeaderItem(list1.size());
+            vpGLadapter.addAll(list2);
+            vpGLadapter.addSectionHeaderItem(list2.size());
+            vpGLadapter.addAll(list3);
+            vpGLadapter.addSectionHeaderItem(list3.size());
+            vpGLadapter.addAll(list4);
+            vpGLadapter.addSectionHeaderItem(list4.size());
+            vpGLadapter.addAll(list5);
+            vpGLadapter.addSectionHeaderItem(list5.size());
+            vpGLadapter.addAll(list6);
+            vpGLadapter.addSectionHeaderItem(list6.size());
+            vpGLadapter.addAll(list7);
+            vpGLadapter.notifyDataSetChanged();
+            list1.clear();
+            list2.clear();
+            list3.clear();
+            list4.clear();
+            list5.clear();
+            list6.clear();
+            list7.clear();
+
+            /*List<String> readyForProcess = null;
             List<Goat> goatsToProcess = new ArrayList<Goat>();
 
             if(isProtocolSynced){
@@ -820,7 +918,6 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             }
 
             distributeToListsByFarm(goatsToProcess);
-
 
             //sortGoatsByFarm(goatsToProcess);
             //processGoatToLists(s);
@@ -849,7 +946,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             list4.clear();
             list5.clear();
             list6.clear();
-            list7.clear();
+            list7.clear();*/
 
 
             return success[0];
@@ -865,8 +962,12 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         protected void onPostExecute(Boolean success) {
 
             listViewGoats.setAdapter(vpGLadapter);
-            setTitle("Списък с "+(vpGLadapter.getCount()-6)+" кози за Протокол за посещение от "+Globals.getDateShort(mVisitProtocol.getVisitDate()));
-
+            //setTitle("Списък с "+(vpGLadapter.getCount()-6)+" кози за Протокол за посещение от "+Globals.getDateShort(mVisitProtocol.getVisitDate()));
+            if(isProtocolSynced){
+                setTitle("Списък с " + (vpGLadapter.getCount() - 6) + " кози за Протокол за посещение от " + Globals.getDateShort(mVisitProtocol.getVisitDate()));
+            }else {
+                setTitle("Списък с " + (vpGLadapter.getCount() - 6) + " кози за Протокол за посещение от " + Globals.getDateShort(mLocalVisitProtocol.getVisitDate()));
+            }
             if(mProgressDialog.isShowing()){
                 mProgressDialog.cancel();
             }

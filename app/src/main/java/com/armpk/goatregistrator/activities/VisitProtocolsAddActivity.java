@@ -27,9 +27,12 @@ import com.armpk.goatregistrator.database.Farm;
 import com.armpk.goatregistrator.database.User;
 import com.armpk.goatregistrator.database.VisitActivity;
 import com.armpk.goatregistrator.database.VisitProtocol;
+import com.armpk.goatregistrator.database.mobile.LocalVisitProtocol;
+import com.armpk.goatregistrator.database.mobile.LocalVisitProtocolVisitActivity;
 import com.armpk.goatregistrator.fragments.DatePickerFragment;
 import com.armpk.goatregistrator.utilities.Globals;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,7 +52,7 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
     private DatabaseHelper dbHelper;
     private SharedPreferences mSharedPreferences;
     private StringBuffer mErrorMessage;
-    private VisitProtocol mVisitProtocol;
+    private LocalVisitProtocol mLocalVisitProtocol;
 
     private AutoCompleteTextView mAutocompleteTextFarm;
     private AutoCompleteTextView mAutocompleteTextEmployee1;
@@ -113,17 +116,17 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    mVisitProtocol = new VisitProtocol();
+                    mLocalVisitProtocol = new LocalVisitProtocol();
                     //mVisitProtocol.setId((long) 0);
                     try {
                         if(validateAllFields()){
                             //dbHelper.createVisitProtocol(mVisitProtocol);
                             //saveProtocol(mVisitProtocol);
-                            continueToReadGoats(mVisitProtocol);
+                            continueToReadGoats(mLocalVisitProtocol);
                             //Log.d("TEMPORARY PROTOCOL", mSharedPreferences.getString(Globals.TEMPORARY_VISIT_PROTOCOL, null));
                             //finish();
                         }else{
-                            mVisitProtocol = null;
+                            mLocalVisitProtocol = null;
                             Toast error = Toast.makeText(getApplicationContext(), mErrorMessage, Toast.LENGTH_LONG);
                             mErrorMessage.setLength(0);
                             error.show();
@@ -211,20 +214,38 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
         }
     }
 
-    private void continueToReadGoats(VisitProtocol vp){
+    private void continueToReadGoats(LocalVisitProtocol vp){
         Intent intent = new Intent(this, GoatAddReaderActivity.class);
         Bundle args = new Bundle();
-        args.putSerializable(ARG_VISIT_PROTOCOL, mVisitProtocol);
-        args.putSerializable(ARG_FARM, mVisitProtocol.getFarm());
+        args.putSerializable(ARG_VISIT_PROTOCOL, vp);
+        args.putSerializable(ARG_FARM, vp.getFarm());
         intent.putExtras(args);
         try {
             //Globals.savePreferences(Globals.TEMPORARY_VISIT_PROTOCOL, Globals.objectToJson(vp).toString(), this);
-            Set<String> tempProtocols = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
+            /*Set<String> tempProtocols = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
             tempProtocols.add(Globals.objectToJson(vp).toString());
             Globals.savePreferences(Globals.TEMPORARY_VISIT_PROTOCOLS, tempProtocols, this);
             String key = Globals.TEMPORARY_ACTIVITIES_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
-            Globals.savePreferences(key, mVisitActivitiesIds, this);
-        } catch (JSONException e) {
+            Globals.savePreferences(key, mVisitActivitiesIds, this);*/
+
+            dbHelper.getDaoLocalVisitProtocol().create(vp);
+            for(String s : mVisitActivitiesIds){
+                VisitActivity va = dbHelper.getDaoVisitActivity().queryForId(Integer.valueOf(s));
+                LocalVisitProtocolVisitActivity lvpva = new LocalVisitProtocolVisitActivity();
+
+                lvpva.setVisitActivity(va);
+                lvpva.setLocalVisitProtocol(vp);
+
+                QueryBuilder<LocalVisitProtocolVisitActivity, Long> qb = dbHelper.getDaoLocalVisitProtocolVisitActivity().queryBuilder();
+                long rows = qb.where().eq("localVisitProtocol_id", lvpva.getLocalVisitProtocol().getId())
+                        .and()
+                        .eq("visitActivity_id", lvpva.getVisitActivity().getId())
+                        .countOf();
+                if(rows<1){
+                    dbHelper.getDaoLocalVisitProtocolVisitActivity().create(lvpva);
+                }
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         startActivity(intent);
@@ -247,7 +268,7 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
         }else {
             mFarmSelected.setLst_visitProtocol(null);
             mFarmSelected.setLst_contactPhones(null);
-            mVisitProtocol.setFarm(mFarmSelected);
+            mLocalVisitProtocol.setFarm(mFarmSelected);
         }
 
         if(mEmployee1Selected==null || dbHelper.getDaoUser().queryForId(mEmployee1Selected.getId())==null){
@@ -255,7 +276,7 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
             valid = false;
             focusView = mAutocompleteTextEmployee1;
         }else {
-            mVisitProtocol.setEmployFirst(mEmployee1Selected);
+            mLocalVisitProtocol.setEmployFirst(mEmployee1Selected);
         }
 
         if(mEmployee2Selected==null || dbHelper.getDaoUser().queryForId(mEmployee2Selected.getId())==null){
@@ -263,15 +284,15 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
             valid = false;
             focusView = mAutocompleteTextEmployee2;
         }else {
-            mVisitProtocol.setEmploySecond(mEmployee2Selected);
+            mLocalVisitProtocol.setEmploySecond(mEmployee2Selected);
         }
 
         if(mDateSelected!=null){
-            mVisitProtocol.setVisitDate(mDateSelected);
-            mVisitProtocol.setDateAddedToSystem(new Date(System.currentTimeMillis()));
-            mVisitProtocol.setDateLastUpdated(new Date(System.currentTimeMillis()));
+            mLocalVisitProtocol.setVisitDate(mDateSelected);
+            mLocalVisitProtocol.setDateAddedToSystem(new Date(System.currentTimeMillis()));
+            mLocalVisitProtocol.setDateLastUpdated(new Date(System.currentTimeMillis()));
             try {
-                mVisitProtocol.setLastUpdatedByUser(
+                mLocalVisitProtocol.setLastUpdatedByUser(
                         dbHelper.getDaoUser().queryForId(mSharedPreferences.getLong(Globals.SETTING_ACTIVE_USER_ID, 0))
                 );
             } catch (SQLException e) {
@@ -284,7 +305,7 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
         }
 
         if(mEditTextNotes.getText().length()>0){
-            mVisitProtocol.setNotes(mEditTextNotes.getText().toString());
+            mLocalVisitProtocol.setNotes(mEditTextNotes.getText().toString());
         }
 
         if(!valid) {
