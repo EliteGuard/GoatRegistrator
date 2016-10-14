@@ -1,5 +1,5 @@
 #
-# generated on 2016/10/10 10:27:46
+# generated on 2016/10/14 09:53:04
 #
 # --table-start--
 dataClass=com.armpk.goatregistrator.database.Address
@@ -875,7 +875,10 @@ tableName=LocalGoat
 # --table-fields-start--
 # --field-start--
 fieldName=_id
-id=true
+generatedId=true
+# --field-end--
+# --field-start--
+fieldName=real_id
 # --field-end--
 # --field-start--
 fieldName=sex
@@ -986,6 +989,11 @@ maxForeignAutoRefreshLevel=2
 fieldName=lastModifiedBy
 # --field-end--
 # --field-start--
+fieldName=lst_localGoatMeasurements
+foreignCollection=true
+foreignCollectionEager=true
+# --field-end--
+# --field-start--
 fieldName=kidFromPregnancy
 foreign=true
 foreignAutoRefresh=true
@@ -1037,12 +1045,41 @@ maxForeignAutoRefreshLevel=2
 # --table-end--
 #################################
 # --table-start--
+dataClass=com.armpk.goatregistrator.database.mobile.LocalGoatMeasurement
+tableName=LocalGoatMeasurement
+# --table-fields-start--
+# --field-start--
+fieldName=_id
+id=true
+# --field-end--
+# --field-start--
+fieldName=goat
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=measurement
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=value
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
 dataClass=com.armpk.goatregistrator.database.mobile.LocalVisitProtocol
 tableName=LocalVisitProtocol
 # --table-fields-start--
 # --field-start--
 fieldName=_id
 generatedId=true
+# --field-end--
+# --field-start--
+fieldName=real_id
 # --field-end--
 # --field-start--
 fieldName=farm

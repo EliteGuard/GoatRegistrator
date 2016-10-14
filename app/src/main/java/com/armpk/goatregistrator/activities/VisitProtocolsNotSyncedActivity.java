@@ -131,13 +131,14 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
         final LocalVisitProtocol lvp = mVPtoDELETE = (LocalVisitProtocol) listViewResults.getAdapter().getItem(info.position);
         switch (item.getItemId()) {
             case R.id.upload_protocol:
-                //uploadProtocol(vp);
+                uploadProtocol(lvp);
                 return true;
             case R.id.continue_protocol:
                 Intent intent = new Intent(this, GoatAddReaderActivity.class);
                 Bundle args = new Bundle();
                 args.putSerializable(ARG_VISIT_PROTOCOL, lvp);
                 args.putSerializable(ARG_FARM, lvp.getFarm());
+                args.putLong(ARG_LOCAL_VP_ID, lvp.getId());
                 intent.putExtras(args);
                 startActivity(intent);
                 return true;
@@ -224,20 +225,37 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
         }
     }
 
-    private void uploadProtocol(VisitProtocol vp){
+    private void uploadProtocol(LocalVisitProtocol lvp){
         RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_PARTED, VisitProtocolsNotSyncedActivity.this);
         mRestPutVisitProtocol.setAction(RestConnection.Action.POST);
         try {
-            JSONObject data = Globals.objectToJson(vp);
+            JSONObject data = new JSONObject();
 
-            String keyActivities = Globals.TEMPORARY_ACTIVITIES_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
+            VisitProtocol vp = new VisitProtocol();
+            lvp.getFarm().setLst_visitProtocol(null);
+            if(lvp.getFarm()!=null) vp.setFarm(lvp.getFarm());
+            if(lvp.getVisitDate()!=null) vp.setVisitDate(lvp.getVisitDate());
+            if(lvp.getNotes()!=null) vp.setNotes(lvp.getNotes());
+            else vp.setNotes("");
+            if(lvp.getEmployFirst()!=null) vp.setEmployFirst(lvp.getEmployFirst());
+            if(lvp.getEmploySecond()!=null) vp.setEmploySecond(lvp.getEmploySecond());
+            if(lvp.getDateAddedToSystem()!=null) vp.setDateAddedToSystem(lvp.getDateAddedToSystem());
+            if(lvp.getDateLastUpdated()!=null) vp.setDateLastUpdated(lvp.getDateLastUpdated());
+            if(lvp.getLastUpdatedByUser()!=null) vp.setLastUpdatedByUser(lvp.getLastUpdatedByUser());
+            data = Globals.objectToJson(vp);
+            /*String keyActivities = Globals.TEMPORARY_ACTIVITIES_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
             Set<String> pva = mSharedPreferences.getStringSet(keyActivities, new HashSet<String>());
             JSONArray localActivities = new JSONArray();
             for(String s : pva)localActivities.put(Globals.objectToJson(mapVisitActivities.get(s)));
-            data.put("lst_visitActivities", localActivities);
+            data.put("lst_visitActivities", localActivities);*/
+            JSONArray localActivities = new JSONArray();
+            for(LocalVisitProtocolVisitActivity lvpva :
+                    dbHelper.getDaoLocalVisitProtocolVisitActivity().queryBuilder().where().eq("localVisitProtocol_id", lvp.getId()).query()){
+                localActivities.put(Globals.objectToJson(lvpva.getVisitActivity()));
+            }
 
             mRestPutVisitProtocol.setJSONData(data);
-        } catch (JSONException e) {
+        } catch (JSONException | SQLException e) {
             e.printStackTrace();
         }
         mRestPutVisitProtocol.execute((Void) null);
@@ -373,9 +391,13 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
     private void startUploadingGoats(String result) throws JSONException {
         VisitProtocol vp = Globals.jsonToObject(new JSONObject(result), VisitProtocol.class);
 
-        String keyGoats = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
+        /*String keyGoats = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
         Set<String> spg = mSharedPreferences.getStringSet(keyGoats, new HashSet<String>());
-        for (String str : spg) orderedGoatsForUpload.add(str);
+        for (String str : spg) orderedGoatsForUpload.add(str);*/
+        for(LocalGoat lg : dbHelper.getDaoLocalVisitProtocol().queryBuilder()
+                .where().eq("real_id") ){
+
+        }
 
         JSONArray localGoats = new JSONArray();
         String pid = String.valueOf(vp.getFarm().getId());

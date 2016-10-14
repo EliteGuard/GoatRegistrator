@@ -168,7 +168,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 }
 
                 vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
-                //vpGLadapter.addSectionHeaderItem(1);
+                vpGLadapter.addSectionHeaderItem(1);
                 vpGLadapter.addAll(list1);
                 vpGLadapter.addSectionHeaderItem(list1.size());
                 vpGLadapter.addAll(list2);
@@ -312,7 +312,11 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                     result.append(createTableCellCentered("Не"));
                 }
                 //column 3
-                result.append(createTableCell(goat.getBreed().getBreedName()));
+                if(goat.getBreed()!=null) {
+                    result.append(createTableCell(goat.getBreed().getBreedName()));
+                }else{
+                    result.append(createTableCellCentered("НЕПОСОЧЕНА"));
+                }
 
                 //column 4
                 if(goat.getFirstVeterinaryNumber()!=null) {
@@ -754,36 +758,14 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         });
     }
 
-    private void distributeToListsByFarm(List<Goat> goatsToProcess) {
+    private void distributeLocalGoatsToListsByFarm(List<LocalGoat> goatsToProcess) {
         long farmId = -1;
 
         try {
-            for (Goat goat : goatsToProcess) {
+            for (LocalGoat goat : goatsToProcess) {
 
-                /*StringBuffer key1 = new StringBuffer();
-                if (goat.getFirstVeterinaryNumber() != null)
-                    key1.append(goat.getFirstVeterinaryNumber());
-                if (goat.getSecondVeterinaryNumber() != null)
-                    key1.append(goat.getSecondVeterinaryNumber());
-                if (goat.getFirstBreedingNumber() != null)
-                    key1.append(goat.getFirstBreedingNumber());
-                if (goat.getSecondBreedingNumber() != null)
-                    key1.append(goat.getSecondBreedingNumber());
-                key1.append("_farm");
-                Farm farm1;
-                if(mSharedPreferences.getString(key1.toString(), "").length()>0){
-                    farm1 = dbHelper.getDaoFarm().queryForId(
-                            new JSONObject(mSharedPreferences.getString(key1.toString(), "")).getLong("id"));
-                }else{
-                    farm1 = mVisitProtocol.getFarm();
-                }*/
-                Farm farm1 = null;
-                List<LocalGoat> llg = dbHelper.getDaoLocalGoat().queryBuilder()
-                        .where()
-                        .eq("localVisitProtocol_id", mLocalVisitProtocol.getId()).query();
-                if(llg.size()==1){
-                    farm1 = dbHelper.getDaoFarm().queryForId(llg.get(0).getFarm().getId());
-                }else {
+                Farm farm1 = goat.getFarm();
+                if(farm1==null){
                     if(isProtocolSynced) {
                         farm1 = mVisitProtocol.getFarm();
                     }else{
@@ -795,9 +777,13 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 if (list==null) {
                     listsByFarm.put(farm1.getId(), list = new ArrayList<Goat>());
                 }
-                list.add(goat);
+                goat.getFarm().setLst_visitProtocol(null);
+                goat.setLocalVisitProtocol(null);
+                list.add(Globals.jsonToObject(
+                        Globals.objectToJson(goat), Goat.class
+                ));
             }
-        } catch (SQLException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
@@ -824,52 +810,50 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(Void... params) {
             final boolean[] success = {false};
-            ArrayList<Goat> goatsToProcess = new ArrayList<Goat>();
-            ArrayList<LocalGoat> localReadyforProces = new ArrayList<LocalGoat>();
+            //ArrayList<Goat> goatsToProcess = new ArrayList<Goat>();
+            ArrayList<LocalGoat> localReadyforProcess = new ArrayList<LocalGoat>();
 
             if(isProtocolSynced){
-
                 try {
-
-                    localReadyforProces = new ArrayList<LocalGoat>(
+                    localReadyforProcess = new ArrayList<LocalGoat>(
                             dbHelper.getDaoLocalVisitProtocol().queryBuilder()
                                     .where()
                                     .eq("real_id", mVisitProtocol.getId())
                                     .queryForFirst().getLst_localGoat()
                     );
 
-                    for(LocalGoat lg : localReadyforProces){
+                    /*for(LocalGoat lg : localReadyforProces){
                         lg.getFarm().setLst_visitProtocol(null);
                         lg.setLocalVisitProtocol(null);
                         goatsToProcess.add(Globals.jsonToObject(
                                 Globals.objectToJson(lg), Goat.class
                         ));
-                    }
-                } catch (SQLException | JSONException e) {
+                    }*/
+                } catch (SQLException e) {
                     e.printStackTrace();
                 }
-
             }else{
                 try {
-                    List<LocalVisitProtocol> llvp = dbHelper.getDaoLocalVisitProtocol().queryForAll();
+                    //List<LocalVisitProtocol> llvp = dbHelper.getDaoLocalVisitProtocol().queryForAll();
 
-                    localReadyforProces = new ArrayList<LocalGoat>(
+                    localReadyforProcess = new ArrayList<LocalGoat>(
                             dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat());
 
-                    for(LocalGoat lg : localReadyforProces){
+                    /*for(LocalGoat lg : localReadyforProces){
                         lg.getFarm().setLst_visitProtocol(null);
                         lg.setLocalVisitProtocol(null);
                         goatsToProcess.add(Globals.jsonToObject(
                                 Globals.objectToJson(lg), Goat.class
                                 ));
-                    }
-                } catch (SQLException | JSONException e) {
+                    }*/
+
+                } catch (SQLException e) {
                     e.printStackTrace();
                 }
 
             }
+            distributeLocalGoatsToListsByFarm(localReadyforProcess);
 
-            distributeToListsByFarm(goatsToProcess);
 
             vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
             //vpGLadapter.addSectionHeaderItem(1);

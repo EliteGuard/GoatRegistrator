@@ -13,7 +13,7 @@ public class LocalGoatMeasurement {
 
     @SerializedName("id")
     @DatabaseField(id = true)
-    private transient Long _id;
+    private Long _id;
 
     @DatabaseField (foreign = true, foreignAutoRefresh = true)
     private LocalGoat goat;
