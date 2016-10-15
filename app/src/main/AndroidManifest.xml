@@ -37,7 +37,8 @@
         <activity
             android:name=".activities.GoatAddReaderActivity"
             android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"/>
         <activity
             android:name=".activities.GoatAddManuallyActivity"
             android:theme="@style/AppTheme.NoActionBar" />

@@ -23,8 +23,10 @@ import com.armpk.goatregistrator.adapters.VisitProtocolSearchResultAdapter;
 import com.armpk.goatregistrator.database.DatabaseHelper;
 import com.armpk.goatregistrator.database.Farm;
 import com.armpk.goatregistrator.database.Goat;
+import com.armpk.goatregistrator.database.Measurement;
 import com.armpk.goatregistrator.database.VisitActivity;
 import com.armpk.goatregistrator.database.VisitProtocol;
+import com.armpk.goatregistrator.database.enums.MeasurementType;
 import com.armpk.goatregistrator.database.mobile.LocalGoat;
 import com.armpk.goatregistrator.database.mobile.LocalGoatMeasurement;
 import com.armpk.goatregistrator.database.mobile.LocalVisitProtocol;
@@ -33,6 +35,7 @@ import com.armpk.goatregistrator.utilities.Globals;
 import com.armpk.goatregistrator.utilities.RestConnection;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.stmt.DeleteBuilder;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -64,7 +67,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
     private List<LocalVisitProtocol> listVisitProtocol;
     //Set<String> tempProtocols;
 
-    ArrayList<String> orderedGoatsForUpload = new ArrayList<String>();
+    ArrayList<LocalGoat> orderedGoatsForUpload = new ArrayList<LocalGoat>();
     int goatCounter = 1;
 
     LocalVisitProtocol mVPtoDELETE;
@@ -253,7 +256,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                     dbHelper.getDaoLocalVisitProtocolVisitActivity().queryBuilder().where().eq("localVisitProtocol_id", lvp.getId()).query()){
                 localActivities.put(Globals.objectToJson(lvpva.getVisitActivity()));
             }
-
+            data.put("lst_visitActivities", localActivities);
             mRestPutVisitProtocol.setJSONData(data);
         } catch (JSONException | SQLException e) {
             e.printStackTrace();
@@ -380,6 +383,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                 /*listVisitProtocol.remove(mVPtoDELETE);
                 adapterResults.notifyDataSetChanged();*/
                 goatCounter = 0;
+                orderedGoatsForUpload.clear();
                 startUploadingGoats(result);
             }
 
@@ -394,9 +398,14 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
         /*String keyGoats = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
         Set<String> spg = mSharedPreferences.getStringSet(keyGoats, new HashSet<String>());
         for (String str : spg) orderedGoatsForUpload.add(str);*/
-        for(LocalGoat lg : dbHelper.getDaoLocalVisitProtocol().queryBuilder()
-                .where().eq("real_id") ){
-
+        try {
+            for(LocalGoat lg : dbHelper.getDaoLocalVisitProtocol().queryBuilder()
+                    .where().eq("real_id", vp.getId())
+                    .queryForFirst().getLst_localGoat() ){
+                orderedGoatsForUpload.add(lg);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         JSONArray localGoats = new JSONArray();
@@ -411,39 +420,59 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
 
         for(int i=0; i<orderedGoatsForUpload.size(); i++){
+            JSONArray farmsA = new JSONArray();
+            Farm tf = new Farm();
+            if(orderedGoatsForUpload.get(i).getFarm()!=null) {
+                tf.setId(orderedGoatsForUpload.get(i).getFarm().getId());
+                farmsA.put(Globals.objectToJson(tf));
+            }else{
+                tf.setId(vp.getFarm().getId());
+                farmsA.put(Globals.objectToJson(tf));
+            }
 
-            JSONObject goatO = new JSONObject(orderedGoatsForUpload.get(i));
+            JSONArray measurements = new JSONArray();
+            try {
+                QueryBuilder<Measurement, Integer> mqb = dbHelper.getDaoMeasurement().queryBuilder();
+                mqb.selectColumns("_id", "name", "codeName", "minValue", "maxValue", "allowedValues", "description")
+                        .orderBy("name", true)
+                        .where()
+                        .eq("type", MeasurementType.BONITIROVKA);
+
+                QueryBuilder<LocalGoatMeasurement, Long> lgmQb = dbHelper.getDaoLocalGoatMeasurements().queryBuilder();
+                lgmQb.where()
+                        .eq("goat_id", orderedGoatsForUpload.get(i));
+
+                lgmQb.join(mqb);
+
+                for(LocalGoatMeasurement lgm : lgmQb.query()){
+                    lgm.setId(null);
+                    measurements.put(Globals.objectToJson(lgm));
+                }
+                    /*measurements = new JSONArray(
+                            dbHelper.getDaoLocalGoatMeasurements().queryBuilder()
+                                    .where().eq("goat_id", orderedGoatsForUpload.get(i).getRealId()).query()
+                    );*/
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            orderedGoatsForUpload.get(i).setLst_localGoatMeasurements(null);
+            orderedGoatsForUpload.get(i).setLocalVisitProtocol(null);
+            JSONObject goatO = new JSONObject(Globals.objectToJson(orderedGoatsForUpload.get(i)).toString());
 
             if(goatO.opt("id")==null) {
                 goatO.put("id", JSONObject.NULL);
             }
 
-            Goat keygoat = Globals.jsonToObject(new JSONObject(orderedGoatsForUpload.get(i)), Goat.class);
-            StringBuffer key = new StringBuffer();
-            if(keygoat.getFirstVeterinaryNumber()!=null) key.append(keygoat.getFirstVeterinaryNumber());
-            if(keygoat.getSecondVeterinaryNumber()!=null) key.append(keygoat.getSecondVeterinaryNumber());
-            if(keygoat.getFirstBreedingNumber()!=null) key.append(keygoat.getFirstBreedingNumber());
-            if(keygoat.getSecondBreedingNumber()!=null) key.append(keygoat.getSecondBreedingNumber());
-            if(mSharedPreferences.getString(key.toString(), "").length()>0){
-                JSONArray measurements = new JSONArray(mSharedPreferences.getString(key.toString(), ""));
-                goatO.put("lst_goatMeasurements", measurements);
-            }
-
-            JSONArray farmsA = new JSONArray();
-            key.append("_farm");
-            JSONObject fjo = new JSONObject(mSharedPreferences.getString(
-                    key.toString(),
-                    Globals.objectToJson(vp.getFarm()).toString()));
-            Farm tf = new Farm();
-            tf.setId(fjo.optLong("id"));
-            farmsA.put(Globals.objectToJson(tf));
-            goatO.put("lst_farms", farmsA);
-
-            if(keygoat.getId()!=null) goatO.put("condition", "old");
-            else goatO.put("condition", "new");
-
             goatO.put("processed_id", pid+goatCounter);
             goatCounter++;
+
+            if(orderedGoatsForUpload.get(i).getRealId()!=null) goatO.put("condition", "old");
+            else goatO.put("condition", "new");
+
+            goatO.put("lst_farms", farmsA);
+
+            goatO.put("lst_goatMeasurements", measurements);
 
             localGoats.put(goatO);
 
@@ -460,6 +489,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                     e.printStackTrace();
                 }*/
                 mRestPutVisitProtocol.setJSONArray(localGoats);
+                mRestPutVisitProtocol.setMessage("Импортиране на "+goatCounter+" от "+orderedGoatsForUpload.size()+" кози");
                 mRestPutVisitProtocol.execute((Void) null);
                 break;
             }
@@ -484,7 +514,66 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
 
             for(int i=counter+1; i<orderedGoatsForUpload.size(); i++){
-                JSONObject goatO = new JSONObject(orderedGoatsForUpload.get(i));
+
+                JSONArray farmsA = new JSONArray();
+                Farm tf = new Farm();
+                if(orderedGoatsForUpload.get(i).getFarm()!=null) {
+                    tf.setId(orderedGoatsForUpload.get(i).getFarm().getId());
+                    farmsA.put(Globals.objectToJson(tf));
+                }else{
+                    tf.setId(vp.getFarm().getId());
+                    farmsA.put(Globals.objectToJson(tf));
+                }
+
+                JSONArray measurements = new JSONArray();
+                try {
+                    QueryBuilder<Measurement, Integer> mqb = dbHelper.getDaoMeasurement().queryBuilder();
+                    mqb.selectColumns("_id", "name", "codeName", "minValue", "maxValue", "allowedValues", "description")
+                            .orderBy("name", true)
+                            .where()
+                            .eq("type", MeasurementType.BONITIROVKA);
+
+                    QueryBuilder<LocalGoatMeasurement, Long> lgmQb = dbHelper.getDaoLocalGoatMeasurements().queryBuilder();
+                    lgmQb.where()
+                            .eq("goat_id", orderedGoatsForUpload.get(i));
+
+                    lgmQb.join(mqb);
+
+                    for(LocalGoatMeasurement lgm : lgmQb.query()){
+                        lgm.setId(null);
+                        measurements.put(Globals.objectToJson(lgm));
+                    }
+                    /*measurements = new JSONArray(
+                            dbHelper.getDaoLocalGoatMeasurements().queryBuilder()
+                                    .where().eq("goat_id", orderedGoatsForUpload.get(i).getRealId()).query()
+                    );*/
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+
+                orderedGoatsForUpload.get(i).setLst_localGoatMeasurements(null);
+                orderedGoatsForUpload.get(i).setLocalVisitProtocol(null);
+
+                JSONObject goatO = new JSONObject(Globals.objectToJson(orderedGoatsForUpload.get(i)).toString());
+
+                if(goatO.opt("id")==null) {
+                    goatO.put("id", JSONObject.NULL);
+                }
+
+                goatO.put("processed_id", pid+goatCounter);
+                goatCounter++;
+
+                if(orderedGoatsForUpload.get(i).getRealId()!=null) goatO.put("condition", "old");
+                else goatO.put("condition", "new");
+
+                goatO.put("lst_farms", farmsA);
+
+                goatO.put("lst_goatMeasurements", measurements);
+
+                localGoats.put(goatO);
+
+                /*JSONObject goatO = new JSONObject(orderedGoatsForUpload.get(i));
                 if(goatO.opt("id")==null) {
                     goatO.put("id", JSONObject.NULL);
                 }
@@ -516,7 +605,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                 goatO.put("processed_id", pid+goatCounter);
                 goatCounter++;
 
-                localGoats.put(goatO);
+                localGoats.put(goatO);*/
 
                 if(goatCounter%10==0 || i==orderedGoatsForUpload.size()-1){
                     RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_GOATS,
@@ -532,6 +621,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                         e.printStackTrace();
                     }*/
                     mRestPutVisitProtocol.setJSONArray(localGoats);
+                    mRestPutVisitProtocol.setMessage("Импортиране на "+goatCounter+" от "+orderedGoatsForUpload.size()+" кози");
                     mRestPutVisitProtocol.execute((Void) null);
                     break;
                 }

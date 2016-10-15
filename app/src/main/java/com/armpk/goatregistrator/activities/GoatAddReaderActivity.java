@@ -392,6 +392,9 @@ public class GoatAddReaderActivity extends AppCompatActivity
                 return true;
             case R.id.action_next:
                 loadNextRecord();
+                if(currentIndex >= GOATS_ARRAY.size()) {
+                    mEditTextBreedingCode1.setText("");
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -2092,6 +2095,10 @@ public class GoatAddReaderActivity extends AppCompatActivity
                         .orderBy("dateLastUpdated", true)
                         .where()
                         .eq("localVisitProtocol_id", mLocalVisitProtocol.getId()).query());
+                /*GOATS_ARRAY = new ArrayList<LocalGoat>(dbHelper.getDaoLocalVisitProtocol().queryBuilder()
+                        .where()
+                        .eq("localVisitProtocol_id", mLocalVisitProtocol.getId())
+                        .queryForFirst().getLst_localGoat());*/
             } catch (SQLException e) {
                 e.printStackTrace();
             }

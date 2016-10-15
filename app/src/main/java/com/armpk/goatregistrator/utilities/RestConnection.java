@@ -203,6 +203,10 @@ public class RestConnection extends AsyncTask<Void, Integer, String> {
         mProgressDialog.setMax(max);
     }
 
+    public void setMessage(String msg){
+        mProgressDialog.setMessage(msg);
+    }
+
     private void updateProgress(int value){
         mProgressDialog.setProgress(value);
         if(value==2 && mProgressDialog.getMax()==2){
