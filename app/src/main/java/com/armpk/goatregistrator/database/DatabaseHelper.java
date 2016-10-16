@@ -43,7 +43,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "armpk_goat_registrator.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 14;
+    private static final int DATABASE_VERSION = 15;
 
     // the DAO object we use to access the SimpleData table
     private Dao<Address, Long> daoAddress = null;
@@ -126,7 +126,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
 
             while (++oldVersion <= newVersion) {
                 switch (oldVersion) {
-                    case 14: {
+                    case 15: {
 
                         TableUtils.dropTable(connectionSource, LocalGoat.class, true);
                         TableUtils.dropTable(connectionSource, LocalVisitProtocol.class, true);
@@ -137,7 +137,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
                         TableUtils.createTableIfNotExists(connectionSource, LocalVisitProtocol.class);
                         TableUtils.createTableIfNotExists(connectionSource, LocalVisitProtocolVisitActivity.class);
                         TableUtils.createTableIfNotExists(connectionSource, LocalGoatMeasurement.class);
-                        applyUpdate2();
+                        //applyUpdate2();
                         break;
                     }
                 }
@@ -149,7 +149,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
         }
     }
 
-    private void applyUpdate2(){
+    public boolean applyUpdate2(){
+        boolean success = false;
+
+
         SharedPreferences mSharedPreferences = mContext.getSharedPreferences(mContext.getPackageName(), Context.MODE_PRIVATE);
         Set<String> tempProtocols = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
         try {
@@ -222,9 +225,12 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
 
             }
             //sortSingleListByLastUpdated(localVPs);
+            success = true;
         } catch (JSONException | SQLException e){
             e.printStackTrace();
+            success = false;
         }
+        return success;
     }
 
     /**

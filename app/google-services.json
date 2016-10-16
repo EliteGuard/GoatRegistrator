@@ -1,0 +1,51 @@
+{
+  "project_info": {
+    "project_number": "1059201690540",
+    "firebase_url": "https://goatregistrator.firebaseio.com",
+    "project_id": "goatregistrator",
+    "storage_bucket": "goatregistrator.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1059201690540:android:53556b9b814cef9e",
+        "android_client_info": {
+          "package_name": "com.armpk.goatregistrator"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1059201690540-t49uj7h7c06sjci1aa7tnmrpujius2r3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.armpk.goatregistrator",
+            "certificate_hash": "89C702E7B0A5CB79241558C44E8EA4BF9F2C2F4A"
+          }
+        },
+        {
+          "client_id": "1059201690540-smlfavv1bsi9s62mu0rvev42tnhcer0o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [{ "current_key": "AIzaSyA_QSGLuf71TGmLLTDG8l91XDKJNSjl8gQ" }],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1059201690540-smlfavv1bsi9s62mu0rvev42tnhcer0o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

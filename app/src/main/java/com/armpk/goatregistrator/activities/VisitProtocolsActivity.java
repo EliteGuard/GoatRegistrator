@@ -9,14 +9,17 @@ import android.view.View;
 import android.widget.Button;
 
 import com.armpk.goatregistrator.R;
+import com.armpk.goatregistrator.database.DatabaseHelper;
+import com.armpk.goatregistrator.database.updates.ApplyUpdate2;
 import com.armpk.goatregistrator.utilities.Globals;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class VisitProtocolsActivity extends AppCompatActivity {
+public class VisitProtocolsActivity extends AppCompatActivity implements ApplyUpdate2.OnApplyUpdate2 {
 
     private SharedPreferences mSharedPreferences;
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +29,7 @@ public class VisitProtocolsActivity extends AppCompatActivity {
         setTitle(R.string.text_visit_protocol);
 
         mSharedPreferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
+        dbHelper = new DatabaseHelper(this);
 
         Button buttonAdd = (Button)findViewById(R.id.buttonAdd);
         if (buttonAdd != null) {
@@ -66,5 +70,13 @@ public class VisitProtocolsActivity extends AppCompatActivity {
             }
 
         }
+
+        ApplyUpdate2 au2 = new ApplyUpdate2(this, dbHelper, this);
+        au2.execute((Void) null);
+    }
+
+    @Override
+    public void onApplyUpdate2Finished(boolean success) {
+
     }
 }
