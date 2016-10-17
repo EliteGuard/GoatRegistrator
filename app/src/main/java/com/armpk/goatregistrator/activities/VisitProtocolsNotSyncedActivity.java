@@ -607,7 +607,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
                 localGoats.put(goatO);*/
 
-                if(goatCounter%10==0 || i==orderedGoatsForUpload.size()-1){
+                if(goatCounter%10==0 || i>=orderedGoatsForUpload.size()-1){
                     RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_GOATS,
                             String.valueOf(vp.getId()), VisitProtocolsNotSyncedActivity.this);
                     mRestPutVisitProtocol.setAction(RestConnection.Action.POST);

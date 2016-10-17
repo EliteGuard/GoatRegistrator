@@ -11,6 +11,7 @@ import com.armpk.goatregistrator.database.mobile.LocalGoat;
 import com.armpk.goatregistrator.database.mobile.LocalGoatMeasurement;
 import com.armpk.goatregistrator.database.mobile.LocalVisitProtocol;
 import com.armpk.goatregistrator.database.mobile.LocalVisitProtocolVisitActivity;
+import com.armpk.goatregistrator.database.updates.ApplyUpdate2;
 import com.armpk.goatregistrator.utilities.Globals;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,12 +39,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
+public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpdate2.OnApplyUpdate2 {
 
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "armpk_goat_registrator.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 15;
+    private static final int DATABASE_VERSION = 16;
 
     // the DAO object we use to access the SimpleData table
     private Dao<Address, Long> daoAddress = null;
@@ -126,7 +127,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
 
             while (++oldVersion <= newVersion) {
                 switch (oldVersion) {
-                    case 15: {
+                    case 16: {
 
                         TableUtils.dropTable(connectionSource, LocalGoat.class, true);
                         TableUtils.dropTable(connectionSource, LocalVisitProtocol.class, true);
@@ -138,6 +139,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
                         TableUtils.createTableIfNotExists(connectionSource, LocalVisitProtocolVisitActivity.class);
                         TableUtils.createTableIfNotExists(connectionSource, LocalGoatMeasurement.class);
                         //applyUpdate2();
+
+                        ApplyUpdate2 au2 = new ApplyUpdate2(mContext, this, this);
+                        au2.execute((Void) null);
+
                         break;
                     }
                 }
@@ -231,6 +236,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper{
             success = false;
         }
         return success;
+    }
+
+    @Override
+    public void onApplyUpdate2Finished(boolean success) {
+
     }
 
     /**

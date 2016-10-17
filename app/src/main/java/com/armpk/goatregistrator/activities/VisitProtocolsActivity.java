@@ -70,13 +70,15 @@ public class VisitProtocolsActivity extends AppCompatActivity implements ApplyUp
             }
 
         }
-
-        ApplyUpdate2 au2 = new ApplyUpdate2(this, dbHelper, this);
-        au2.execute((Void) null);
     }
 
     @Override
     public void onApplyUpdate2Finished(boolean success) {
+
+    }
+
+    public void stackOverflow(){
+        this.stackOverflow();
 
     }
 }
