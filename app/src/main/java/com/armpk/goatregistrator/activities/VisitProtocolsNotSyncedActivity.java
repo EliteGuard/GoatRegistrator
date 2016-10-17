@@ -344,7 +344,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                         synchronizeVisitProtocol(result);
                         break;
                     case VISIT_PROTOCOL_GOATS:
-                        if(goatCounter==orderedGoatsForUpload.size()){
+                        if(goatCounter>=orderedGoatsForUpload.size()-1){
                             listVisitProtocol.remove(mVPtoDELETE);
                             adapterResults.notifyDataSetChanged();
                             RestConnection.closeProgressDialog();
