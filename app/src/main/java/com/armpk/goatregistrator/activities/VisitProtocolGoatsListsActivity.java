@@ -168,7 +168,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 }
 
                 vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
-                vpGLadapter.addSectionHeaderItem(1);
+                //vpGLadapter.addSectionHeaderItem(1);
                 vpGLadapter.addAll(list1);
                 vpGLadapter.addSectionHeaderItem(list1.size());
                 vpGLadapter.addAll(list2);
@@ -854,9 +854,27 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             }
             distributeLocalGoatsToListsByFarm(localReadyforProcess);
 
+            Iterator it = listsByFarm.entrySet().iterator();
+            try {
+                while (it.hasNext()) {
+                    Map.Entry pair = (Map.Entry) it.next();
+                    //System.out.println(pair.getKey() + " = " + pair.getValue());
+
+                    List<Goat> temp = listsByFarm.get(pair.getKey());
+                    for (Goat g : temp) {
+                        processGoatToLists(g);
+                    }
+                    Farm f = dbHelper.getDaoFarm().queryForId((Long) pair.getKey());
+                    f.setLst_visitProtocol(null);
+                    processForList6(temp, f);
+                    sortLists();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
 
             vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
-            //vpGLadapter.addSectionHeaderItem(1);
+            vpGLadapter.addSectionHeaderItem(0);
             vpGLadapter.addAll(list1);
             vpGLadapter.addSectionHeaderItem(list1.size());
             vpGLadapter.addAll(list2);
@@ -948,9 +966,9 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             listViewGoats.setAdapter(vpGLadapter);
             //setTitle("Списък с "+(vpGLadapter.getCount()-6)+" кози за Протокол за посещение от "+Globals.getDateShort(mVisitProtocol.getVisitDate()));
             if(isProtocolSynced){
-                setTitle("Списък с " + (vpGLadapter.getCount() - 6) + " кози за Протокол за посещение от " + Globals.getDateShort(mVisitProtocol.getVisitDate()));
+                setTitle("Списък с " + (vpGLadapter.getCount() - 7) + " кози за Протокол за посещение от " + Globals.getDateShort(mVisitProtocol.getVisitDate()));
             }else {
-                setTitle("Списък с " + (vpGLadapter.getCount() - 6) + " кози за Протокол за посещение от " + Globals.getDateShort(mLocalVisitProtocol.getVisitDate()));
+                setTitle("Списък с " + (vpGLadapter.getCount() - 7) + " кози за Протокол за посещение от " + Globals.getDateShort(mLocalVisitProtocol.getVisitDate()));
             }
             if(mProgressDialog.isShowing()){
                 mProgressDialog.cancel();

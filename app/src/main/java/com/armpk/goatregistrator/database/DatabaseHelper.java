@@ -19,8 +19,10 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.SelectArg;
@@ -44,7 +46,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "armpk_goat_registrator.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 16;
+    private static final int DATABASE_VERSION = 21;
 
     // the DAO object we use to access the SimpleData table
     private Dao<Address, Long> daoAddress = null;
@@ -127,7 +129,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
 
             while (++oldVersion <= newVersion) {
                 switch (oldVersion) {
-                    case 16: {
+                    case 21: {
 
                         TableUtils.dropTable(connectionSource, LocalGoat.class, true);
                         TableUtils.dropTable(connectionSource, LocalVisitProtocol.class, true);
@@ -199,7 +201,60 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
                 String keyGoats = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
                 Set<String> pg = mSharedPreferences.getStringSet(keyGoats, new HashSet<String>());
                 for(String sg : pg) {
-                    Goat keygoat = Globals.jsonToObject(new JSONObject(sg), Goat.class);
+
+                    JSONObject preprocess = new JSONObject(sg);
+
+                    JSONArray gmJA = new JSONArray();
+                    if(preprocess.optJSONArray("lst_goatMeasurements")!=null)
+                        gmJA = new JSONArray(preprocess.optJSONArray("lst_goatMeasurements"));
+                    if(gmJA.length()>0) preprocess.remove("lst_goatMeasurements");
+
+                    JSONArray gemJA = new JSONArray();
+                    if(preprocess.optJSONArray("lst_goatExteriorMarks")!=null)
+                        gemJA = new JSONArray(preprocess.optJSONArray("lst_goatExteriorMarks"));
+                    if(gemJA.length()>0) preprocess.remove("lst_goatExteriorMarks");
+
+                    JSONArray glJA = new JSONArray();
+                    if(preprocess.optJSONArray("lst_lactations")!=null)
+                        glJA = new JSONArray(preprocess.optJSONArray("lst_lactations"));
+                    if(glJA.length()>0) preprocess.remove("lst_lactations");
+
+                    JSONArray gmcJA = new JSONArray();
+                    if(preprocess.optJSONArray("lst_milkControls")!=null)
+                        gmcJA = new JSONArray(preprocess.optJSONArray("lst_milkControls"));
+                    if(gmcJA.length()>0) preprocess.remove("lst_milkControls");
+
+                    JSONArray gfsJA = new JSONArray();
+                    if(preprocess.optJSONArray("lst_fertilityStates")!=null)
+                        gfsJA = new JSONArray(preprocess.optJSONArray("lst_fertilityStates"));
+                    if(gfsJA.length()>0) preprocess.remove("lst_fertilityStates");
+
+
+
+
+                    Goat keygoat = Globals.jsonToObject(preprocess, Goat.class);
+
+                    getDaoGoat().assignEmptyForeignCollection(keygoat, "lst_goatMeasurements");
+                    for(int i=0;i<gmJA.length();i++)
+                        keygoat.getLst_goatMeasurements().add(Globals.jsonToObject(gmJA.getJSONObject(i), GoatMeasurement.class));
+
+                    getDaoGoat().assignEmptyForeignCollection(keygoat, "lst_goatExteriorMarks");
+                    for(int i=0;i<gemJA.length();i++)
+                        keygoat.getLst_goatExteriorMarks().add(Globals.jsonToObject(gemJA.getJSONObject(i), GoatExteriorMark.class));
+
+                    getDaoGoat().assignEmptyForeignCollection(keygoat, "lst_lactations");
+                    for(int i=0;i<glJA.length();i++)
+                        keygoat.getLst_lactations().add(Globals.jsonToObject(glJA.getJSONObject(i), Lactation.class));
+
+                    getDaoGoat().assignEmptyForeignCollection(keygoat, "lst_milkControls");
+                    for(int i=0;i<gmcJA.length();i++)
+                        keygoat.getLst_milkControls().add(Globals.jsonToObject(gmcJA.getJSONObject(i), MilkControl.class));
+
+                    getDaoGoat().assignEmptyForeignCollection(keygoat, "lst_fertilityStates");
+                    for(int i=0;i<gfsJA.length();i++)
+                        keygoat.getLst_fertilityStates().add(Globals.jsonToObject(gfsJA.getJSONObject(i), FertilityState.class));
+
+
 
                     LocalGoat lg = new LocalGoat(keygoat);
                     lg.setLocalVisitProtocol(lvp);

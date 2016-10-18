@@ -169,7 +169,24 @@ public class VisitProtocolGoatsListsAdapter extends ArrayAdapter<Goat> {
             //holder.linearHeader.setVisibility(View.GONE);
         }else{
             holder.linearHeader.setVisibility(View.VISIBLE);
-            holder.textHeaderTitle.setText("Списък");
+            //holder.textHeaderTitle.setText("Списък");
+            List<Integer> sectionPositions = new ArrayList<>(getSectionsHeader());
+            if(position==sectionPositions.get(0))
+                holder.textHeaderTitle.setText("Налични кози без промени");
+            else if(position==sectionPositions.get(1))
+                holder.textHeaderTitle.setText("Налични кози с променени ветеринарни марки, които се водят във ВетИС");
+            else if(position==sectionPositions.get(2))
+                holder.textHeaderTitle.setText("Кози с липсващи ветеринарни марки, които са вписани в родословна книга");
+            else if(position==sectionPositions.get(3))
+                holder.textHeaderTitle.setText("Нови кози с ветеринарни марки, които се водят във ВетИС");
+            else if(position==sectionPositions.get(4))
+                holder.textHeaderTitle.setText("Налични кози с ветеринарни марки, които не се водят във ВетИС");
+            else if(position==sectionPositions.get(5))
+                holder.textHeaderTitle.setText("Кози, липсващи при проверка");
+            else if(position==sectionPositions.get(6))
+                holder.textHeaderTitle.setText("Кози с особени случаи, за допълнителна проверка");
+            else
+                holder.textHeaderTitle.setText("Други");
         }
 
         //this method must return the view corresponding to the data at the specified position.
