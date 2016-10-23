@@ -46,7 +46,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "armpk_goat_registrator.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 21;
+    private static final int DATABASE_VERSION = 35;
 
     // the DAO object we use to access the SimpleData table
     private Dao<Address, Long> daoAddress = null;
@@ -129,7 +129,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
 
             while (++oldVersion <= newVersion) {
                 switch (oldVersion) {
-                    case 21: {
+                    case 35: {
 
                         TableUtils.dropTable(connectionSource, LocalGoat.class, true);
                         TableUtils.dropTable(connectionSource, LocalVisitProtocol.class, true);
@@ -204,33 +204,60 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
 
                     JSONObject preprocess = new JSONObject(sg);
 
+
+
+                    /*if(preprocess.optJSONArray("lst_goatMeasurements")!=null && preprocess.optJSONArray("lst_goatMeasurements").length()>0){
+                        Log.d("STOP", "AT GOAT MEASUREMENT");
+                    }*/
+
                     JSONArray gmJA = new JSONArray();
-                    if(preprocess.optJSONArray("lst_goatMeasurements")!=null)
-                        gmJA = new JSONArray(preprocess.optJSONArray("lst_goatMeasurements"));
-                    if(gmJA.length()>0) preprocess.remove("lst_goatMeasurements");
+                    if(preprocess.optJSONArray("lst_goatMeasurements")!=null) {
+                        if (preprocess.optJSONArray("lst_goatMeasurements").length() > 0) {
+                            gmJA = new JSONArray(preprocess.optJSONArray("lst_goatMeasurements"));
+                            if (gmJA.length() > 0) preprocess.remove("lst_goatMeasurements");
+                        }
+                    }
 
                     JSONArray gemJA = new JSONArray();
-                    if(preprocess.optJSONArray("lst_goatExteriorMarks")!=null)
-                        gemJA = new JSONArray(preprocess.optJSONArray("lst_goatExteriorMarks"));
-                    if(gemJA.length()>0) preprocess.remove("lst_goatExteriorMarks");
+                    if(preprocess.optJSONArray("lst_goatExteriorMarks")!=null) {
+                        preprocess.remove("lst_goatExteriorMarks");
+                        /*if (preprocess.optJSONArray("lst_goatExteriorMarks").length() > 0) {
+                            gemJA = new JSONArray(preprocess.optJSONArray("lst_goatExteriorMarks"));
+                            if (gemJA.length() > 0) preprocess.remove("lst_goatExteriorMarks");
+                        }*/
+                    }
 
                     JSONArray glJA = new JSONArray();
-                    if(preprocess.optJSONArray("lst_lactations")!=null)
-                        glJA = new JSONArray(preprocess.optJSONArray("lst_lactations"));
-                    if(glJA.length()>0) preprocess.remove("lst_lactations");
+                    if(preprocess.optJSONArray("lst_lactations")!=null){
+                        if(preprocess.optJSONArray("lst_lactations").length()>0){
+                            glJA = new JSONArray(preprocess.optJSONArray("lst_lactations"));
+                            if(glJA.length()>0) preprocess.remove("lst_lactations");
+                        }
+                    }
 
                     JSONArray gmcJA = new JSONArray();
-                    if(preprocess.optJSONArray("lst_milkControls")!=null)
-                        gmcJA = new JSONArray(preprocess.optJSONArray("lst_milkControls"));
-                    if(gmcJA.length()>0) preprocess.remove("lst_milkControls");
+                    if(preprocess.optJSONArray("lst_milkControls")!=null){
+                        if(preprocess.optJSONArray("lst_milkControls").length()>0){
+                            gmcJA = new JSONArray(preprocess.optJSONArray("lst_milkControls"));
+                            if(gmcJA.length()>0) preprocess.remove("lst_milkControls");
+                        }
+                    }
 
                     JSONArray gfsJA = new JSONArray();
-                    if(preprocess.optJSONArray("lst_fertilityStates")!=null)
-                        gfsJA = new JSONArray(preprocess.optJSONArray("lst_fertilityStates"));
-                    if(gfsJA.length()>0) preprocess.remove("lst_fertilityStates");
+                    if(preprocess.optJSONArray("lst_fertilityStates")!=null){
+                        preprocess.remove("lst_fertilityStates");
+                        /*if(preprocess.optJSONArray("lst_fertilityStates").length()>0){
+                            gfsJA = new JSONArray(preprocess.optJSONArray("lst_fertilityStates"));
+                            if(gfsJA.length()>0) preprocess.remove("lst_fertilityStates");
+                        }*/
+                    }
 
 
-
+                    if (preprocess.optJSONArray("lst_goatMeasurements")!=null && preprocess.optJSONArray("lst_goatMeasurements").length() < 1) preprocess.remove("lst_goatMeasurements");
+                    if (preprocess.optJSONArray("lst_goatExteriorMarks")!=null && preprocess.optJSONArray("lst_goatExteriorMarks").length() < 1) preprocess.remove("lst_goatExteriorMarks");
+                    if (preprocess.optJSONArray("lst_lactations")!=null && preprocess.optJSONArray("lst_lactations").length() < 1) preprocess.remove("lst_lactations");
+                    if (preprocess.optJSONArray("lst_milkControls")!=null && preprocess.optJSONArray("lst_milkControls").length() < 1) preprocess.remove("lst_milkControls");
+                    if (preprocess.optJSONArray("lst_fertilityStates")!=null && preprocess.optJSONArray("lst_fertilityStates").length() < 1) preprocess.remove("lst_fertilityStates");
 
                     Goat keygoat = Globals.jsonToObject(preprocess, Goat.class);
 
@@ -269,9 +296,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
                         JSONArray measurements = new JSONArray(mSharedPreferences.getString(key.toString(), ""));
                         for(int i=0; i<measurements.length(); i++){
                             LocalGoatMeasurement lgm = new LocalGoatMeasurement();
-                            GoatMeasurement gm = Globals.jsonToObject(measurements.getJSONObject(i), GoatMeasurement.class);
+                            //GoatMeasurement gm = Globals.jsonToObject(measurements.getJSONObject(i), GoatMeasurement.class);
+                            Measurement m = Globals.jsonToObject(measurements.getJSONObject(i), Measurement.class);
                             lgm.setLocalGoat(lg);
-                            lgm.setMeasurement(gm.getMeasurement());
+                            lgm.setMeasurement(m);
+                            lgm.setValue(measurements.getJSONObject(i).getInt("value"));
                             getDaoLocalGoatMeasurements().create(lgm);
                         }
                     }

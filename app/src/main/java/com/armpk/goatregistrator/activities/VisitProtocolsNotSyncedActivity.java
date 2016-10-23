@@ -668,7 +668,15 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
             }
             sortSingleListByLastUpdated(listVisitProtocol);*/
             try {
-                listVisitProtocol = dbHelper.getDaoLocalVisitProtocol().queryBuilder().orderBy("dateLastUpdated", false).query();
+                QueryBuilder<LocalVisitProtocol, Long> qbLvp = dbHelper.getDaoLocalVisitProtocol().queryBuilder();
+                qbLvp.selectColumns("_id", "real_id", "farm_id",  "farm2_id",
+                        "visitDate",  "notes",
+                        "employFirst_id",  "employSecond_id",
+                        "dateAddedToSystem",  "dateLastUpdated", "lastUpdatedByUser_id")
+                        .orderBy("dateLastUpdated", false);
+                listVisitProtocol = qbLvp.query();
+                success[0] = true;
+                //listVisitProtocol = dbHelper.getDaoLocalVisitProtocol().queryBuilder().orderBy("dateLastUpdated", false).query();
             } catch (SQLException e) {
                 e.printStackTrace();
             }

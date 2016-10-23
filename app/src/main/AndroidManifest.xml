@@ -21,7 +21,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
-        android:name=".MainApp">
+        android:name=".MainApp"
+        android:largeHeap="true">
 
         <activity android:name=".activities.MainEntryActivity">
             <intent-filter>
