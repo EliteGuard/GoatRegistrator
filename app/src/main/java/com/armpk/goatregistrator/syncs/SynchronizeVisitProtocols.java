@@ -7,6 +7,7 @@ import android.util.Pair;
 import android.widget.Toast;
 
 import com.armpk.goatregistrator.database.DatabaseHelper;
+import com.armpk.goatregistrator.database.VisitProtocol;
 import com.armpk.goatregistrator.database.VisitProtocolVisitActivity;
 import com.armpk.goatregistrator.utilities.Globals;
 
@@ -59,63 +60,66 @@ public class SynchronizeVisitProtocols extends AsyncTask<Void, Integer, Boolean>
         } catch (JSONException e) {
             e.printStackTrace();
         };
-        //int cores = Runtime.getRuntime().availableProcessors();
-        int JOBS_COUNT = Runtime.getRuntime().availableProcessors();
-        int part = jsonData.length()/(JOBS_COUNT-1);
-        int remainder = jsonData.length()%(JOBS_COUNT-1);
-        if(jsonData.length()>=2000) divisioner = 500;
-                else if (jsonData.length()>=500) divisioner = 100;
-                else divisioner = 1;
-        final Pair<Integer, Integer>[] range = new Pair[JOBS_COUNT];
-        for(int i=0; i<JOBS_COUNT;i++){
-            if(i<JOBS_COUNT-1) {
-                range[i] = new Pair<Integer, Integer>(part * i, part * (i + 1));
-            }else{
-                range[i] = new Pair<Integer, Integer>(part * i, jsonData.length());
-            }
-        }
-
-        try {
-            //QueryBuilder<FarmGoat, Long> qbFG = dbHelper.getDaoFarmGoat().queryBuilder();
-            for(VisitProtocolVisitActivity vpva : dbHelper.getDaoVisitProtocolVisitActivity().queryForAll()){
-                dbHelper.getDaoVisitProtocol().delete(vpva.getVisitProtocol());
-            }
-            //DeleteBuilder<FarmGoat, Long> dbFG = dbHelper.getDaoFarmGoat().deleteBuilder();
-            dbHelper.getDaoVisitProtocolVisitActivity().deleteBuilder().delete();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        // create a pool of threads, 10 max jobs will execute in parallel
-        ExecutorService threadPool = Executors.newFixedThreadPool(JOBS_COUNT);
-        // submit jobs to be executing by the pool
-        for (int t = 0; t < JOBS_COUNT; t++) {
-            final int finalT = t;
-            threadPool.submit(new Runnable() {
-                public void run() {
-                    for (int j = range[finalT].first; j<range[finalT].second; j++) {
-                        try {
-                            //dbHelper.createOrUpdateCities(jsonData.getJSONObject(j));
-                            dbHelper.updateVisitProtocolByDate(jsonData.getJSONObject(j));
-                            if(j%divisioner==0 || j==jsonData.length()) publishProgress(j);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    success[0] = true;
+        if(jsonData!=null) {
+            int JOBS_COUNT = Runtime.getRuntime().availableProcessors();
+            int part = jsonData.length()/(JOBS_COUNT-1);
+            int remainder = jsonData.length() % (JOBS_COUNT - 1);
+            if (jsonData.length() >= 2000) divisioner = 500;
+            else if (jsonData.length() >= 500) divisioner = 100;
+            else divisioner = 1;
+            final Pair<Integer, Integer>[] range = new Pair[JOBS_COUNT];
+            for (int i = 0; i < JOBS_COUNT; i++) {
+                if (i < JOBS_COUNT - 1) {
+                    range[i] = new Pair<Integer, Integer>(part * i, part * (i + 1));
+                } else {
+                    range[i] = new Pair<Integer, Integer>(part * i, jsonData.length());
                 }
-            });
-        }
-        // once you've submitted your last job to the service it should be shut down
-        threadPool.shutdown();
-        // wait for the threads to finish if necessary
-        try {
-            threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        //Log.d("TIME TO PROCESS", String.valueOf(System.currentTimeMillis()-startTime));
+            }
 
+            try {
+                //QueryBuilder<FarmGoat, Long> qbFG = dbHelper.getDaoFarmGoat().queryBuilder();
+                for (VisitProtocolVisitActivity vpva : dbHelper.getDaoVisitProtocolVisitActivity().queryForAll()) {
+                    dbHelper.getDaoVisitProtocolVisitActivity().delete(vpva);
+                }
+                for(VisitProtocol vp : dbHelper.getDaoVisitProtocol().queryForAll()){
+                    dbHelper.getDaoVisitProtocol().delete(vp);
+                }
+                //DeleteBuilder<FarmGoat, Long> dbFG = dbHelper.getDaoFarmGoat().deleteBuilder();
+                //dbHelper.getDaoVisitProtocolVisitActivity().deleteBuilder().delete();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            // create a pool of threads, 10 max jobs will execute in parallel
+            ExecutorService threadPool = Executors.newFixedThreadPool(JOBS_COUNT);
+            // submit jobs to be executing by the pool
+            for (int t = 0; t < JOBS_COUNT; t++) {
+                final int finalT = t;
+                threadPool.submit(new Runnable() {
+                    public void run() {
+                        for (int j = range[finalT].first; j < range[finalT].second; j++) {
+                            try {
+                                //dbHelper.createOrUpdateCities(jsonData.getJSONObject(j));
+                                dbHelper.updateVisitProtocolByDate(jsonData.getJSONObject(j));
+                                if (j % divisioner == 0 || j == jsonData.length())
+                                    publishProgress(j);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        success[0] = true;
+                    }
+                });
+            }
+            // once you've submitted your last job to the service it should be shut down
+            threadPool.shutdown();
+            // wait for the threads to finish if necessary
+            try {
+                threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         return success[0];
     }
 

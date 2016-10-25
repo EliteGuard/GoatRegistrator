@@ -6,12 +6,15 @@ import android.os.AsyncTask;
 import android.util.Pair;
 import android.widget.Toast;
 
+import com.armpk.goatregistrator.database.Breed;
 import com.armpk.goatregistrator.database.DatabaseHelper;
+import com.armpk.goatregistrator.database.VisitProtocolVisitActivity;
 import com.armpk.goatregistrator.utilities.Globals;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +60,7 @@ public class SynchronizeBreeds extends AsyncTask<Void, Integer, Boolean> {
         } catch (JSONException e) {
             e.printStackTrace();
         };
+
         if(jsonData!=null) {
             int JOBS_COUNT = Runtime.getRuntime().availableProcessors();
             int part = jsonData.length()/(JOBS_COUNT-1);
@@ -72,6 +76,17 @@ public class SynchronizeBreeds extends AsyncTask<Void, Integer, Boolean> {
                     range[i] = new Pair<Integer, Integer>(part * i, jsonData.length());
                 }
             }
+
+            try {
+                //QueryBuilder<FarmGoat, Long> qbFG = dbHelper.getDaoFarmGoat().queryBuilder();
+                for(Breed b : dbHelper.getDaoBreed().queryForAll()){
+                    dbHelper.getDaoBreed().delete(b);
+                }
+                //DeleteBuilder<FarmGoat, Long> dbFG = dbHelper.getDaoFarmGoat().deleteBuilder();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
             // create a pool of threads, 10 max jobs will execute in parallel
             ExecutorService threadPool = Executors.newFixedThreadPool(JOBS_COUNT);
             // submit jobs to be executing by the pool

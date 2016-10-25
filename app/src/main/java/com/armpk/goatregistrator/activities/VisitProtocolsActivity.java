@@ -55,19 +55,20 @@ public class VisitProtocolsActivity extends AppCompatActivity implements ApplyUp
 
         Button buttonNotSynced = (Button)findViewById(R.id.buttonNotSynced);
         if (buttonNotSynced != null) {
-            Set<String> ps = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
+            buttonNotSynced.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent notSynced = new Intent(VisitProtocolsActivity.this, VisitProtocolsNotSyncedActivity.class);
+                    startActivity(notSynced);
+                }
+            });
+            /*Set<String> ps = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
             if(ps.size() > 0){
-                buttonNotSynced.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent notSynced = new Intent(VisitProtocolsActivity.this, VisitProtocolsNotSyncedActivity.class);
-                        startActivity(notSynced);
-                    }
-                });
+
                 buttonNotSynced.setEnabled(true);
             }else{
                 buttonNotSynced.setEnabled(false);
-            }
+            }*/
 
         }
     }

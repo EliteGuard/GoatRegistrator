@@ -112,6 +112,12 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
             TableUtils.createTable(connectionSource, VisitActivity.class);
             TableUtils.createTable(connectionSource, VisitProtocol.class);
             TableUtils.createTable(connectionSource, VisitProtocolVisitActivity.class);
+
+
+            TableUtils.createTable(connectionSource, LocalGoat.class);
+            TableUtils.createTable(connectionSource, LocalVisitProtocol.class);
+            TableUtils.createTable(connectionSource, LocalVisitProtocolVisitActivity.class);
+            TableUtils.createTable(connectionSource, LocalGoatMeasurement.class);
         } catch (SQLException e) {
             Log.e(DatabaseHelper.class.getName(), "Can't create database", e);
             throw new RuntimeException(e);
@@ -140,7 +146,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
                         TableUtils.createTableIfNotExists(connectionSource, LocalVisitProtocol.class);
                         TableUtils.createTableIfNotExists(connectionSource, LocalVisitProtocolVisitActivity.class);
                         TableUtils.createTableIfNotExists(connectionSource, LocalGoatMeasurement.class);
-                        //applyUpdate2();
 
                         ApplyUpdate2 au2 = new ApplyUpdate2(mContext, this, this);
                         au2.execute((Void) null);
@@ -1270,13 +1275,30 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
             if(vp!=null) {
 
                 //update local visit protocol
-                LocalVisitProtocol lvp = daoLocalVisitProtocol.queryBuilder()
+                LocalVisitProtocol lvp = getDaoLocalVisitProtocol().queryBuilder()
                         .where()
                         .eq("dateAddedToSystem", vp.getDateAddedToSystem())
                         .and()
                         .eq("farm_id", vp.getFarm().getId()).queryForFirst();
-                if(lvp!=null) lvp.setRealId(vp.getId());
-                daoLocalVisitProtocol.update(lvp);
+                if(lvp!=null){
+                    lvp.setRealId(vp.getId());
+                    getDaoLocalVisitProtocol().update(lvp);
+                }else{
+                    LocalVisitProtocol lvpNew = new LocalVisitProtocol();
+                    vp.getFarm().setLst_visitProtocol(null);
+                    if(vp.getFarm()!=null) lvpNew.setFarm(vp.getFarm());
+                    if(vp.getVisitDate()!=null) lvpNew.setVisitDate(vp.getVisitDate());
+                    if(vp.getNotes()!=null) lvpNew.setNotes(vp.getNotes());
+                        else vp.setNotes("");
+                    if(vp.getEmployFirst()!=null) lvpNew.setEmployFirst(vp.getEmployFirst());
+                    if(vp.getEmploySecond()!=null) lvpNew.setEmploySecond(vp.getEmploySecond());
+                    if(vp.getDateAddedToSystem()!=null) lvpNew.setDateAddedToSystem(vp.getDateAddedToSystem());
+                    if(vp.getDateLastUpdated()!=null) lvpNew.setDateLastUpdated(vp.getDateLastUpdated());
+                    if(vp.getLastUpdatedByUser()!=null) lvpNew.setLastUpdatedByUser(vp.getLastUpdatedByUser());
+                    lvpNew.setRealId(vp.getId());
+                    getDaoLocalVisitProtocol().createIfNotExists(lvpNew);
+                }
+
 
 
                 List<VisitActivity> currentVisitActivities = new ArrayList<VisitActivity>();

@@ -168,19 +168,19 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 }
 
                 vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
-                //vpGLadapter.addSectionHeaderItem(1);
+                //vpGLadapter.addSectionHeaderItem();
                 vpGLadapter.addAll(list1);
-                vpGLadapter.addSectionHeaderItem(list1.size());
+                vpGLadapter.addSectionHeaderItem();
                 vpGLadapter.addAll(list2);
-                vpGLadapter.addSectionHeaderItem(list2.size());
+                vpGLadapter.addSectionHeaderItem();
                 vpGLadapter.addAll(list3);
-                vpGLadapter.addSectionHeaderItem(list3.size());
+                vpGLadapter.addSectionHeaderItem();
                 vpGLadapter.addAll(list4);
-                vpGLadapter.addSectionHeaderItem(list4.size());
+                vpGLadapter.addSectionHeaderItem();
                 vpGLadapter.addAll(list5);
-                vpGLadapter.addSectionHeaderItem(list5.size());
+                vpGLadapter.addSectionHeaderItem();
                 vpGLadapter.addAll(list6);
-                vpGLadapter.addSectionHeaderItem(list6.size());
+                vpGLadapter.addSectionHeaderItem();
                 vpGLadapter.addAll(list7);
                 vpGLadapter.notifyDataSetChanged();
                 list1.clear();
@@ -514,12 +514,12 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             //gqb.join(farmGoatLongQb);
             List<Goat> tg = gqb.query();
             Goat gk = null;
-            if(tg.size()==1) gk=tg.get(0);
+            if(tg.size()>0) gk=tg.get(0);
             GoatFromVetIs gv = null;
             List<GoatFromVetIs> tgv = dbHelper.getDaoGoatFromVetIs().queryBuilder().where()
                     .eq("firstVeterinaryNumber", gt.getFirstVeterinaryNumber())
                     .query();
-            if(tgv.size()==1) gv=tgv.get(0);
+            if(tgv.size()>0) gv=tgv.get(0);
             //if(gk!=null && gv!=null) {
             //------------ LIST 1 CONDITIONS
             if (gk!=null && gv!=null && gt.getBreed()!=null && gk.getBreed()!=null && gv.getBreed()!=null &&
@@ -534,9 +534,9 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
             //------------ LIST 2 CONDITIONS
             else if (gk!=null && gv!=null && gt.getBreed()!=null && gk.getBreed()!=null && gv.getBreed()!=null &&
-                    (gt.getSecondVeterinaryNumber()!=null || !gt.getSecondVeterinaryNumber().equals(""))
+                    (gt.getSecondVeterinaryNumber()!=null && !gt.getSecondVeterinaryNumber().equals(""))
                     &&
-                    (gk.getFirstVeterinaryNumber()!=null || !gk.getFirstVeterinaryNumber().equals(""))
+                    (gk.getFirstVeterinaryNumber()!=null && !gk.getFirstVeterinaryNumber().equals(""))
                     &&
                     gt.getBreed().getId().equals(gk.getBreed().getId()) && gt.getBreed().getBreedName().equals(gv.getBreed())
                     &&
@@ -777,7 +777,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 if (list==null) {
                     listsByFarm.put(farm1.getId(), list = new ArrayList<Goat>());
                 }
-                goat.getFarm().setLst_visitProtocol(null);
+                if(goat.getFarm()!=null) goat.getFarm().setLst_visitProtocol(null);
                 goat.setLocalVisitProtocol(null);
                 list.add(Globals.jsonToObject(
                         Globals.objectToJson(goat), Goat.class
@@ -815,6 +815,14 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
             if(isProtocolSynced){
                 try {
+                    /*List<LocalVisitProtocol> lvp1 = dbHelper.getDaoLocalVisitProtocol().queryBuilder()
+                            .where()
+                            .eq("real_id", mVisitProtocol.getId())
+                            .query();
+
+                    List<LocalVisitProtocol> lvp2 = dbHelper.getDaoLocalVisitProtocol().queryBuilder()
+                    .orderBy("dateLastUpdated", false).query();*/
+
                     localReadyforProcess = new ArrayList<LocalGoat>(
                             dbHelper.getDaoLocalVisitProtocol().queryBuilder()
                                     .where()
@@ -854,7 +862,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             }
             distributeLocalGoatsToListsByFarm(localReadyforProcess);
 
-            Iterator it = listsByFarm.entrySet().iterator();
+            /*Iterator it = listsByFarm.entrySet().iterator();
             try {
                 while (it.hasNext()) {
                     Map.Entry pair = (Map.Entry) it.next();
@@ -871,22 +879,22 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
-            }
+            }*/
 
             vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
-            vpGLadapter.addSectionHeaderItem(0);
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list1);
-            vpGLadapter.addSectionHeaderItem(list1.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list2);
-            vpGLadapter.addSectionHeaderItem(list2.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list3);
-            vpGLadapter.addSectionHeaderItem(list3.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list4);
-            vpGLadapter.addSectionHeaderItem(list4.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list5);
-            vpGLadapter.addSectionHeaderItem(list5.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list6);
-            vpGLadapter.addSectionHeaderItem(list6.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list7);
             vpGLadapter.notifyDataSetChanged();
             list1.clear();
@@ -896,6 +904,13 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             list5.clear();
             list6.clear();
             list7.clear();
+
+
+
+
+
+
+
 
             /*List<String> readyForProcess = null;
             List<Goat> goatsToProcess = new ArrayList<Goat>();

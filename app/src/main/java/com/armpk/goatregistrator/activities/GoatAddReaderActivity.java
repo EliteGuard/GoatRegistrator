@@ -721,7 +721,6 @@ public class GoatAddReaderActivity extends AppCompatActivity
                     try {
                         goat.setBreed(dbHelper.getDaoBreed().queryBuilder().where().eq("codeName", adapterBreeds.getItem(mSpinnerBreed.getSelectedItemPosition())).queryForFirst());
 
-
                         if (mDateBirthSelected != null) {
                             goat.setBirthDate(mDateBirthSelected);
                         }

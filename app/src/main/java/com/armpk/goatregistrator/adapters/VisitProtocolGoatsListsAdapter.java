@@ -51,7 +51,7 @@ public class VisitProtocolGoatsListsAdapter extends ArrayAdapter<Goat> {
         return 2;
     }
 
-    public void addSectionHeaderItem(int header) {
+    public void addSectionHeaderItem() {
         listData.add(null);
         sectionHeader.add(listData.size() - 1);
         notifyDataSetChanged();
@@ -117,7 +117,8 @@ public class VisitProtocolGoatsListsAdapter extends ArrayAdapter<Goat> {
                 else if(position<sectionPositions.get(3)) pos = position-2;
                 else if(position<sectionPositions.get(4)) pos = position-3;
                 else if(position<sectionPositions.get(5)) pos = position-4;
-                else pos = position-5;
+                else if(position<sectionPositions.get(6)) pos = position-5;
+                else pos = position-6;
 
                 holder.textViewNumber.setText(String.valueOf(pos));
             }
@@ -168,7 +169,7 @@ public class VisitProtocolGoatsListsAdapter extends ArrayAdapter<Goat> {
             }
             //holder.linearHeader.setVisibility(View.GONE);
         }else{
-            holder.linearHeader.setVisibility(View.VISIBLE);
+            //holder.linearHeader.setVisibility(View.VISIBLE);
             //holder.textHeaderTitle.setText("Списък");
             List<Integer> sectionPositions = new ArrayList<>(getSectionsHeader());
             if(position==sectionPositions.get(0))
@@ -185,8 +186,8 @@ public class VisitProtocolGoatsListsAdapter extends ArrayAdapter<Goat> {
                 holder.textHeaderTitle.setText("Кози, липсващи при проверка");
             else if(position==sectionPositions.get(6))
                 holder.textHeaderTitle.setText("Кози с особени случаи, за допълнителна проверка");
-            else
-                holder.textHeaderTitle.setText("Други");
+            /*else
+                holder.textHeaderTitle.setText("Други");*/
         }
 
         //this method must return the view corresponding to the data at the specified position.

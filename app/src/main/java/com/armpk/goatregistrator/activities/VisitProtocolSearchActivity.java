@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,11 +27,14 @@ import com.armpk.goatregistrator.adapters.FarmSearchResultAdapter;
 import com.armpk.goatregistrator.adapters.VisitProtocolSearchResultAdapter;
 import com.armpk.goatregistrator.database.DatabaseHelper;
 import com.armpk.goatregistrator.database.Farm;
+import com.armpk.goatregistrator.database.Goat;
 import com.armpk.goatregistrator.database.VisitProtocol;
+import com.armpk.goatregistrator.database.mobile.LocalGoat;
 import com.armpk.goatregistrator.syncs.SynchronizeVisitProtocols;
 import com.armpk.goatregistrator.utilities.Globals;
 import com.armpk.goatregistrator.utilities.RestConnection;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.stmt.DeleteBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -86,7 +90,7 @@ public class VisitProtocolSearchActivity extends AppCompatActivity implements Se
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 try {
-                    listVisitProtocol = dbHelper.getDaoVisitProtocol().queryForAll();
+                    listVisitProtocol = dbHelper.getDaoVisitProtocol().queryBuilder().orderBy("dateLastUpdated", false).query();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -302,7 +306,7 @@ public class VisitProtocolSearchActivity extends AppCompatActivity implements Se
             mTextLastSync.setBackgroundColor(Color.YELLOW);
         }
         try {
-            listVisitProtocol = dbHelper.getDaoVisitProtocol().queryForAll();
+            listVisitProtocol = dbHelper.getDaoVisitProtocol().queryBuilder().orderBy("dateLastUpdated", false).query();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -324,18 +328,28 @@ public class VisitProtocolSearchActivity extends AppCompatActivity implements Se
             JSONArray goatsArray = new JSONArray(data.getString("lst_vpGoats"));
             data.remove("lst_vpGoats");
             VisitProtocol vp = Globals.jsonToObject(data, VisitProtocol.class);
-            String key = Globals.TEMPORARY_GOATS_FOR_PROTOCOL + String.valueOf(vp.getFarm().getId()) + "_" + String.valueOf(vp.getDateAddedToSystem().getTime())+"_synced";
+            /*String key = Globals.TEMPORARY_GOATS_FOR_PROTOCOL + String.valueOf(vp.getFarm().getId()) + "_" + String.valueOf(vp.getDateAddedToSystem().getTime())+"_synced";
             Set<String> goats = mSharedPreferences.getStringSet(key, new HashSet<String>());
-
             if(goats.size()>0) goats.clear();
-
             for(int i=0; i<goatsArray.length(); i++){
                 goats.add(goatsArray.get(i).toString());
             }
-            Globals.savePreferences(key, goats, getApplicationContext());
+            Globals.savePreferences(key, goats, getApplicationContext());*/
+
+            DeleteBuilder<LocalGoat, Long> dbLg = dbHelper.getDaoLocalGoat().deleteBuilder();
+                    dbLg.where().eq("localVisitProtocol_id", dbHelper.getDaoLocalVisitProtocol().queryBuilder()
+                            .where().eq("real_id", vp.getId()).queryForFirst().getId());
+            dbLg.delete();
+
+            for(int i=0; i<goatsArray.length(); i++){
+                LocalGoat lg = new LocalGoat(Globals.jsonToObject(goatsArray.getJSONObject(i), Goat.class));
+                lg.setLocalVisitProtocol(dbHelper.getDaoLocalVisitProtocol().queryBuilder()
+                .where().eq("real_id", vp.getId()).queryForFirst());
+                dbHelper.getDaoLocalGoat().create(lg);
+            }
 
             mTextLastSync.setBackgroundColor(Color.GREEN);
-        } catch (JSONException e) {
+        } catch (JSONException | SQLException e) {
             mTextLastSync.setBackgroundColor(Color.YELLOW);
             e.printStackTrace();
         }
