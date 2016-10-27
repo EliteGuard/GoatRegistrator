@@ -90,7 +90,7 @@
             android:gravity="center"/>
     </LinearLayout>
 
-    <ListView
+    <ExpandableListView
         android:id="@+id/listMain"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -99,7 +99,7 @@
         android:layout_marginRight="1dip"
         android:layout_below="@+id/linearMain"
         android:layout_above="@+id/linearExtras">
-    </ListView>
+    </ExpandableListView>
     <LinearLayout
         android:id="@+id/linearExtras"
         android:orientation="horizontal"

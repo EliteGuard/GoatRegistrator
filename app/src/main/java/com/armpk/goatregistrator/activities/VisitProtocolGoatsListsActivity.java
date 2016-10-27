@@ -16,9 +16,11 @@ import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.ExpandableListView;
 import android.widget.ListView;
 
 import com.armpk.goatregistrator.R;
+import com.armpk.goatregistrator.adapters.VisitProtocolGoatListExpandableAdapter;
 import com.armpk.goatregistrator.adapters.VisitProtocolGoatsListsAdapter;
 import com.armpk.goatregistrator.database.Breed;
 import com.armpk.goatregistrator.database.DatabaseHelper;
@@ -63,9 +65,12 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
     private SharedPreferences mSharedPreferences;
 
-    private ListView listViewGoats;
+    private ExpandableListView listViewGoats;
     private Button mButtonPrint;
-    private VisitProtocolGoatsListsAdapter vpGLadapter;
+    //private VisitProtocolGoatsListsAdapter vpGLadapter;
+    private VisitProtocolGoatListExpandableAdapter vpGLEAdapter;
+    List<String> listDataHeader;
+    HashMap<String, List<Goat>> listDataChild;
 
     private LocalVisitProtocol mLocalVisitProtocol;
     private VisitProtocol mVisitProtocol;
@@ -73,6 +78,8 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
     private WebView mWebView;
 
     Calendar now;
+
+
 
     List<Goat> list1 = new ArrayList<>();
     List<Goat> list2 = new ArrayList<>();
@@ -108,7 +115,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 }*/
             }
         });
-        listViewGoats = (ListView)findViewById(R.id.listMain);
+        listViewGoats = (ExpandableListView)findViewById(R.id.listMain);
         if (getIntent().getExtras()!=null) {
             isProtocolSynced = getIntent().getExtras().getBoolean(ARG_SYNCED);
             if(isProtocolSynced){
@@ -151,7 +158,14 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         try {
             while (it.hasNext()) {
                 Map.Entry pair = (Map.Entry) it.next();
-                //System.out.println(pair.getKey() + " = " + pair.getValue());
+
+                list1.clear();
+                list2.clear();
+                list3.clear();
+                list4.clear();
+                list5.clear();
+                list6.clear();
+                list7.clear();
 
                 List<Goat> temp = listsByFarm.get(pair.getKey());
                 for (Goat g : temp) {
@@ -162,7 +176,20 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 processForList6(temp, f);
                 sortLists();
 
-                if(vpGLadapter!=null){
+
+                listDataChild = new HashMap<String, List<Goat>>();
+                listDataChild.put(listDataHeader.get(0), list1);
+                listDataChild.put(listDataHeader.get(1), list2);
+                listDataChild.put(listDataHeader.get(2), list3);
+                listDataChild.put(listDataHeader.get(3), list4);
+                listDataChild.put(listDataHeader.get(4), list5);
+                listDataChild.put(listDataHeader.get(5), list6);
+                listDataChild.put(listDataHeader.get(6), list7);
+
+                vpGLEAdapter = new VisitProtocolGoatListExpandableAdapter(VisitProtocolGoatsListsActivity.this,
+                        listDataHeader, listDataChild);
+
+                /*if(vpGLadapter!=null){
                     vpGLadapter.clear();
                     vpGLadapter.notifyDataSetChanged();
                 }
@@ -189,18 +216,23 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 list4.clear();
                 list5.clear();
                 list6.clear();
-                list7.clear();
+                list7.clear();*/
 
-                createTable(htmlDocument, f);//mVisitProtocol.getFarm());
-                //insertPageBreak(htmlDocument);
+                createTable(htmlDocument, f);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        list1.clear();
+        list2.clear();
+        list3.clear();
+        list4.clear();
+        list5.clear();
+        list6.clear();
+        list7.clear();
+
         htmlDocument.append("</body></html>");
-        /*mWebView.loadDataWithBaseURL(null, htmlDocument.toString(), "text/HTML", "UTF-8", null);
-        mWebView.setVisibility(View.VISIBLE);*/
         webView.loadDataWithBaseURL(null, htmlDocument.toString(), "text/HTML", "UTF-8", null);
         mWebView = webView;
         finish();
@@ -213,9 +245,6 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 "table, th, td {\n" +
                 "    border: 1px solid black;\n" +
                 "}\n" +
-                /*"table { page-break-inside:auto }\n" +
-                "    tr    { page-break-inside:avoid}\n" +
-                "thead { display:table-header-group }\n" +*/
                 "table { page-break-inside:auto; page-break-after:always }\n" +
                 "    tr    { page-break-inside:avoid}\n" +
                 "    thead { display:table-header-group }\n" +
@@ -245,7 +274,15 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
     private void createTable(StringBuffer htmlDocument, Farm farm){
         htmlDocument.append("<p><br><br><br><br><br><b>");
-        htmlDocument.append("Списък с ").append(vpGLadapter.getCount() - 6).append(" кози за Протокол за посещение от ");
+        htmlDocument.append("Списък с ").append(
+                (vpGLEAdapter.getChildrenCount(0)
+                        +vpGLEAdapter.getChildrenCount(1)
+                        +vpGLEAdapter.getChildrenCount(2)
+                        +vpGLEAdapter.getChildrenCount(3)
+                        +vpGLEAdapter.getChildrenCount(4)
+                        +vpGLEAdapter.getChildrenCount(5)
+                        +vpGLEAdapter.getChildrenCount(6))
+        ).append(" кози за Протокол за посещение от ");
         if(isProtocolSynced) {
             htmlDocument.append(Globals.getDateShort(mVisitProtocol.getVisitDate()));
         }else{
@@ -268,7 +305,20 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 .append(farm.getBreedingPlaceNumber());
         htmlDocument.append("</p><b><table style=\"width:100%;page-break-after: always\">");
         insertTableHeader(htmlDocument);
-        htmlDocument.append(createTableCellSpan("Налични кози без промени"));
+
+        int counter = 0;
+        for(int i = 0; i<vpGLEAdapter.getGroupCount(); i++){
+            htmlDocument.append("<tr>");
+            htmlDocument.append(createTableCellSpan(vpGLEAdapter.getGroup(i).toString()));
+            htmlDocument.append("</tr>");
+            for(int j=0; j<vpGLEAdapter.getChildrenCount(i); j++){
+                htmlDocument.append("<tr>");
+                htmlDocument.append(processGoat((Goat)vpGLEAdapter.getChild(i, j), counter, j));
+                htmlDocument.append("</tr>");
+                counter++;
+            }
+        }
+        /*htmlDocument.append(createTableCellSpan("Налични кози без промени"));
         int subcounter = 0;
         for(int i = 0; i<vpGLadapter.getCount(); i++){
             if(vpGLadapter.getSectionsHeader().contains(i)) subcounter = 0;
@@ -276,15 +326,107 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             htmlDocument.append(processGoat(vpGLadapter.getItem(i), i, subcounter));
             htmlDocument.append("</tr>");
             subcounter++;
-        }
+        }*/
         htmlDocument.append("</table>");
     }
 
     private String processGoat(Goat goat, int position, int subposition) {
         StringBuffer result = new StringBuffer();
-        //result.append("<td>");
 
-        int pos = 0;
+        //column 1
+        result.append(createTableCellCentered(String.valueOf(position+1)));
+
+        //column 2
+        result.append(createTableCellCentered(String.valueOf(subposition+1)));
+
+        //column 2
+        if(goat.getAppliedForSelectionControlYear()!=null) {
+            result.append(createTableCellCentered("Да"));
+        }else{
+            result.append(createTableCellCentered("Не"));
+        }
+        //column 3
+        if(goat.getBreed()!=null) {
+            result.append(createTableCell(goat.getBreed().getBreedName()));
+        }else{
+            result.append(createTableCellCentered("НЕПОСОЧЕНА"));
+        }
+
+        //column 4
+        if(goat.getFirstVeterinaryNumber()!=null) {
+            result.append(createTableCell(goat.getFirstVeterinaryNumber()));
+        }else{
+            result.append(createTableCell(""));
+        }
+
+        //column 5
+        if(goat.getSecondVeterinaryNumber()!=null) {
+            result.append(createTableCell(goat.getSecondVeterinaryNumber()));
+        }else{
+            result.append(createTableCell(""));
+        }
+
+        //column 6
+        result.append(createTableCell(""));
+
+        //column 7
+        if(goat.getFirstBreedingNumber()!=null) {
+            result.append(createTableCell(goat.getFirstBreedingNumber()));
+        }else{
+            result.append(createTableCell(""));
+        }
+
+        //column 8
+        if(goat.getSecondBreedingNumber()!=null) {
+            result.append(createTableCell(goat.getSecondBreedingNumber()));
+        }else{
+            result.append(createTableCell(""));
+        }
+
+
+        //column 9
+        if(goat.getBirthDate()!=null) {
+            Calendar bc = new GregorianCalendar();
+            bc.setTimeInMillis(goat.getBirthDate().getTime());
+            result.append(createTableCellCentered(String.valueOf(now.get(Calendar.YEAR) - bc.get(Calendar.YEAR))));
+        }else{
+            result.append(createTableCell(""));
+        }
+
+        //column 10_1
+        if(goat.getSex()==Sex.MALE){
+            result.append(createTableCell("Мъжки"));
+        }else{
+            result.append(createTableCell("Женски"));
+        }
+
+        //column 10
+        if(goat.getId() != null){
+            result.append(createTableCell("Стара"));
+        }else{
+            result.append(createTableCell("Нова"));
+        }
+
+        //column 11
+        if(goat.getCertificateNumber()!=null && goat.getNumberInCertificate()!=null){
+            result.append(createTableCell(
+                    "No. "+String.valueOf(goat.getNumberInCertificate())+" в "+goat.getCertificateNumber()));
+        }else{
+            result.append(createTableCell(""));
+        }
+
+        //column 12
+        if(goat.getWastageProtocolNumber()!=null && goat.getNumberInWastageProtocol()!=null){
+            result.append(createTableCell(
+                    "No. "+String.valueOf(goat.getNumberInWastageProtocol()+" в "+goat.getWastageProtocolNumber())
+            ));
+        }else{
+            result.append(createTableCell(""));
+        }
+
+
+        //result.append("<td>");
+        /*int pos = 0;
         List<Integer> sectionPositions = new ArrayList<>(vpGLadapter.getSectionsHeader());
         int rowType = vpGLadapter.getItemViewType(position);
         switch (rowType) {
@@ -409,11 +551,8 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 else
                     result.append(createTableCellSpan("Други"));
                 result.append("</tr>");
-                /*result.append("<tr>");
-                result.append(createTableCellSpan("Списък"));
-                result.append("</tr>");*/
                 break;
-        }
+        }*/
 
 
         return result.toString();
@@ -442,7 +581,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
     }
 
     private void insertHeading(StringBuffer htmlDocument){
-        htmlDocument.append("Списък с "+(vpGLadapter.getCount()-6)+" кози за Протокол за посещение от "+Globals.getDateShort(mVisitProtocol.getVisitDate()));
+        //htmlDocument.append("Списък с "+(vpGLadapter.getCount()-6)+" кози за Протокол за посещение от "+Globals.getDateShort(mVisitProtocol.getVisitDate()));
     }
 
     private void insertPageBreak(StringBuffer htmlDocument){
@@ -810,9 +949,19 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(Void... params) {
             final boolean[] success = {false};
+
+            listDataHeader = new ArrayList<String>();
+            listDataHeader.add("Налични кози без промени");
+            listDataHeader.add("Налични кози с променени ветеринарни марки, които се водят във ВетИС");
+            listDataHeader.add("Кози с липсващи ветеринарни марки, които са вписани в родословна книга");
+            listDataHeader.add("Нови кози с ветеринарни марки, които се водят във ВетИС");
+            listDataHeader.add("Налични кози с ветеринарни марки, които не се водят във ВетИС");
+            listDataHeader.add("Кози, липсващи при проверка");
+            listDataHeader.add("Кози с особени случаи, за допълнителна проверка");
+
+
             //ArrayList<Goat> goatsToProcess = new ArrayList<Goat>();
             ArrayList<LocalGoat> localReadyforProcess = new ArrayList<LocalGoat>();
-
             if(isProtocolSynced){
                 try {
                     /*List<LocalVisitProtocol> lvp1 = dbHelper.getDaoLocalVisitProtocol().queryBuilder()
@@ -880,81 +1029,48 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             } catch (SQLException e) {
                 e.printStackTrace();
             }*/
-
-            vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list1);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list2);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list3);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list4);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list5);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list6);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list7);
-            vpGLadapter.notifyDataSetChanged();
-            list1.clear();
-            list2.clear();
-            list3.clear();
-            list4.clear();
-            list5.clear();
-            list6.clear();
-            list7.clear();
-
-
-
-
-
-
-
-
-            /*List<String> readyForProcess = null;
-            List<Goat> goatsToProcess = new ArrayList<Goat>();
-
-            if(isProtocolSynced){
-                String key = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(mVisitProtocol.getFarm().getId())+"_"+String.valueOf(mVisitProtocol.getDateAddedToSystem().getTime()+"_synced");
-                Set<String> gs = mSharedPreferences.getStringSet(key, new HashSet<String>());
-                readyForProcess = new ArrayList<String>(gs);
-            }else{
-                String key = Globals.TEMPORARY_GOATS_FOR_PROTOCOL+String.valueOf(mVisitProtocol.getFarm().getId())+"_"+String.valueOf(mVisitProtocol.getDateAddedToSystem().getTime());
-                Set<String> gs = mSharedPreferences.getStringSet(key, new HashSet<String>());
-                readyForProcess = new ArrayList<String>(gs);
-            }
-
-            try {
-                for (int i = 0; i < readyForProcess.size(); i++) {
-                    String s = readyForProcess.get(i);
-                    goatsToProcess.add(Globals.jsonToObject(new JSONObject(s), Goat.class));
+            if(listsByFarm.size()>0) {
+                try {
+                    Map.Entry pair = (Map.Entry) listsByFarm.entrySet().iterator().next();
+                    List<Goat> temp = listsByFarm.get(pair.getKey());
+                    for (Goat g : temp) {
+                        processGoatToLists(g);
+                    }
+                    Farm f = dbHelper.getDaoFarm().queryForId((Long) pair.getKey());
+                    f.setLst_visitProtocol(null);
+                    processForList6(temp, f);
+                    sortLists();
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
 
-            distributeToListsByFarm(goatsToProcess);
+            listDataChild = new HashMap<String, List<Goat>>();
+            listDataChild.put(listDataHeader.get(0), list1);
+            listDataChild.put(listDataHeader.get(1), list2);
+            listDataChild.put(listDataHeader.get(2), list3);
+            listDataChild.put(listDataHeader.get(3), list4);
+            listDataChild.put(listDataHeader.get(4), list5);
+            listDataChild.put(listDataHeader.get(5), list6);
+            listDataChild.put(listDataHeader.get(6), list7);
 
-            //sortGoatsByFarm(goatsToProcess);
-            //processGoatToLists(s);
-            //processForList6(readyForProcess);
-            //sortLists();
+            vpGLEAdapter = new VisitProtocolGoatListExpandableAdapter(VisitProtocolGoatsListsActivity.this,
+                    listDataHeader, listDataChild);
 
-            vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
-            //vpGLadapter.addSectionHeaderItem(1);
+            /*vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list1);
-            vpGLadapter.addSectionHeaderItem(list1.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list2);
-            vpGLadapter.addSectionHeaderItem(list2.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list3);
-            vpGLadapter.addSectionHeaderItem(list3.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list4);
-            vpGLadapter.addSectionHeaderItem(list4.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list5);
-            vpGLadapter.addSectionHeaderItem(list5.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list6);
-            vpGLadapter.addSectionHeaderItem(list6.size());
+            vpGLadapter.addSectionHeaderItem();
             vpGLadapter.addAll(list7);
             vpGLadapter.notifyDataSetChanged();
             list1.clear();
@@ -964,7 +1080,6 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             list5.clear();
             list6.clear();
             list7.clear();*/
-
 
             return success[0];
         }
@@ -978,12 +1093,26 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Boolean success) {
 
-            listViewGoats.setAdapter(vpGLadapter);
-            //setTitle("Списък с "+(vpGLadapter.getCount()-6)+" кози за Протокол за посещение от "+Globals.getDateShort(mVisitProtocol.getVisitDate()));
+            //listViewGoats.setAdapter(vpGLadapter);
+            listViewGoats.setAdapter(vpGLEAdapter);
             if(isProtocolSynced){
-                setTitle("Списък с " + (vpGLadapter.getCount() - 7) + " кози за Протокол за посещение от " + Globals.getDateShort(mVisitProtocol.getVisitDate()));
+                setTitle("Списък с " + (vpGLEAdapter.getChildrenCount(0)
+                        +vpGLEAdapter.getChildrenCount(1)
+                        +vpGLEAdapter.getChildrenCount(2)
+                        +vpGLEAdapter.getChildrenCount(3)
+                        +vpGLEAdapter.getChildrenCount(4)
+                        +vpGLEAdapter.getChildrenCount(5)
+                        +vpGLEAdapter.getChildrenCount(6))
+                        + " кози за Протокол за посещение от " + Globals.getDateShort(mVisitProtocol.getVisitDate()));
             }else {
-                setTitle("Списък с " + (vpGLadapter.getCount() - 7) + " кози за Протокол за посещение от " + Globals.getDateShort(mLocalVisitProtocol.getVisitDate()));
+                setTitle("Списък с " + (vpGLEAdapter.getChildrenCount(0)
+                        +vpGLEAdapter.getChildrenCount(1)
+                        +vpGLEAdapter.getChildrenCount(2)
+                        +vpGLEAdapter.getChildrenCount(3)
+                        +vpGLEAdapter.getChildrenCount(4)
+                        +vpGLEAdapter.getChildrenCount(5)
+                        +vpGLEAdapter.getChildrenCount(6))
+                        + " кози за Протокол за посещение от " + Globals.getDateShort(mLocalVisitProtocol.getVisitDate()));
             }
             if(mProgressDialog.isShowing()){
                 mProgressDialog.cancel();

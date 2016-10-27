@@ -737,24 +737,32 @@ public class GoatAddReaderActivity extends AppCompatActivity
                         goat.setDateLastUpdated(new Date(System.currentTimeMillis()));
                         goat.setLastUpdatedByUser(dbHelper.getDaoUser().queryForId(mSharedPreferences.getLong(Globals.SETTING_ACTIVE_USER_ID, 1)));
 
-                        saveFarmForGoat(goat, mFarmFound);
 
-                        GOATS_ARRAY.add(goat);
                         /*GOATS_SET.add(Globals.objectToJson(goat).toString());
                         Globals.savePreferences(GOATS_KEY, GOATS_SET, getApplicationContext());*/
                         goat.setLocalVisitProtocol(mLocalVisitProtocol);
-                        dbHelper.getDaoLocalGoat().create(goat);
-                        saveTemporaryBonitirovka(goat);
+                        if(dbHelper.getDaoLocalGoat().create(goat)==1){
+                            GOATS_ARRAY.add(goat);
+                            saveFarmForGoat(goat, mFarmFound);
+                            saveTemporaryBonitirovka(goat);
 
-                        loadNextRecord();
+                            loadNextRecord();
 
-                        updateVisitProtocolModified();
+                            updateVisitProtocolModified();
 
-                        clearOnAdd();
-                        clearSearchResult();
-                        resetBonitorvka();
+                            clearOnAdd();
+                            clearSearchResult();
+                            mSpinnerBreed.setSelection(0);
+                            resetBonitorvka();
 
-                        getNextFromBuffer();
+                            getNextFromBuffer();
+                        }else{
+                            mErrorMessage.append("Неуспешен запис!\n");
+                            Toast error = Toast.makeText(getApplicationContext(), mErrorMessage, Toast.LENGTH_LONG);
+                            mErrorMessage.setLength(0);
+                            error.show();
+                        }
+
                     } catch (SQLException | JSONException e) {
                         e.printStackTrace();
                     }
@@ -819,23 +827,32 @@ public class GoatAddReaderActivity extends AppCompatActivity
                                 goat.setDateLastUpdated(new Date(System.currentTimeMillis()));
                                 goat.setLastUpdatedByUser(dbHelper.getDaoUser().queryForId(mSharedPreferences.getLong(Globals.SETTING_ACTIVE_USER_ID, 1)));
 
-                                saveFarmForGoat(goat, mFarmFound);
-                                saveTemporaryBonitirovka(goat);
 
-                                GOATS_ARRAY.add(goat);
                                 /*GOATS_SET.add(Globals.objectToJson(goat).toString());
                                 Globals.savePreferences(GOATS_KEY, GOATS_SET, getApplicationContext());*/
                                 goat.setLocalVisitProtocol(mLocalVisitProtocol);
-                                dbHelper.getDaoLocalGoat().create(goat);
-                                loadNextRecord();
 
-                                updateVisitProtocolModified();
+                                if(dbHelper.getDaoLocalGoat().create(goat)==1) {
+                                    GOATS_ARRAY.add(goat);
+                                    saveFarmForGoat(goat, mFarmFound);
+                                    saveTemporaryBonitirovka(goat);
 
-                                clearOnAdd();
-                                clearSearchResult();
-                                resetBonitorvka();
+                                    loadNextRecord();
 
-                                getNextFromBuffer();
+                                    updateVisitProtocolModified();
+
+                                    clearOnAdd();
+                                    clearSearchResult();
+                                    mSpinnerBreed.setSelection(0);
+                                    resetBonitorvka();
+
+                                    getNextFromBuffer();
+                                }else{
+                                    mErrorMessage.append("Неуспешен запис!\n");
+                                    Toast error = Toast.makeText(getApplicationContext(), mErrorMessage, Toast.LENGTH_LONG);
+                                    mErrorMessage.setLength(0);
+                                    error.show();
+                                }
                             } catch (SQLException | JSONException e) {
                                 e.printStackTrace();
                             }
@@ -1306,6 +1323,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
             mScrollMain.scrollTo(0,0);
 
             clearSearchResult();
+            mSpinnerBreed.setSelection(0);
             resetBonitorvka();
             mMenuNext.setEnabled(false);
             mMenuPrevious.setEnabled(true);
@@ -1458,7 +1476,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
         else mEditTextVetCode1.setTextColor(Color.RED);
         mEditTextBreedingCode1.setTextColor(Color.BLACK);
 
-        mSpinnerBreed.setSelection(0);
+        //mSpinnerBreed.setSelection(0);
 
         mEditTextVetCode1Found.setText("");
         mEditTextVetCode1Found.setTextColor(Color.BLACK);
@@ -1625,7 +1643,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
         }else{
             mEditTextBreedingCode1Found.setText("НЯМА МАРКА");
         }
-        if(!mGoatFound.getFirstBreedingNumber().equals(mEditTextBreedingCode1.getText().toString())){
+        if(mGoatFound.getFirstBreedingNumber()!=null && !mGoatFound.getFirstBreedingNumber().equals(mEditTextBreedingCode1.getText().toString())){
             mEditTextBreedingCode1.setTextColor(Color.RED);
         }else
             mEditTextBreedingCode1.setTextColor(Color.GREEN);
@@ -1729,27 +1747,51 @@ public class GoatAddReaderActivity extends AppCompatActivity
             //mLinearBinitirovka1.setVisibility(View.VISIBLE);
             mTextBonititirovka1.setText(getString(R.string.text_two_values_with_sc_delimiter,
                     mGoatMeasurementsFound.get(0).getMeasurement().getName(), String.valueOf(mGoatMeasurementsFound.get(0).getValue())));
-            mSeekBonitirovka1.setProgress(mGoatMeasurementsFound.get(0).getValue());
+            if(mGoatMeasurementsFound.get(0).getValue()!=null){
+                mSeekBonitirovka1.setProgress(mGoatMeasurementsFound.get(0).getValue());
+            }else{
+                mSeekBonitirovka1.setProgress(0);
+            }
 
             //mLinearBinitirovka2.setVisibility(View.VISIBLE);
             mTextBonititirovka2.setText(getString(R.string.text_two_values_with_sc_delimiter,
                     mGoatMeasurementsFound.get(1).getMeasurement().getName(), String.valueOf(mGoatMeasurementsFound.get(1).getValue())));
-            mSeekBonitirovka2.setProgress(mGoatMeasurementsFound.get(1).getValue());
+            //mSeekBonitirovka2.setProgress(mGoatMeasurementsFound.get(1).getValue());
+            if(mGoatMeasurementsFound.get(1).getValue()!=null){
+                mSeekBonitirovka1.setProgress(mGoatMeasurementsFound.get(1).getValue());
+            }else{
+                mSeekBonitirovka1.setProgress(0);
+            }
 
             //mLinearBinitirovka3.setVisibility(View.VISIBLE);
             mTextBonititirovka3.setText(getString(R.string.text_two_values_with_sc_delimiter,
                     mGoatMeasurementsFound.get(2).getMeasurement().getName(), String.valueOf(mGoatMeasurementsFound.get(2).getValue())));
-            mSeekBonitirovka3.setProgress(mGoatMeasurementsFound.get(2).getValue());
+            //mSeekBonitirovka3.setProgress(mGoatMeasurementsFound.get(2).getValue());
+            if(mGoatMeasurementsFound.get(2).getValue()!=null){
+                mSeekBonitirovka1.setProgress(mGoatMeasurementsFound.get(2).getValue());
+            }else{
+                mSeekBonitirovka1.setProgress(0);
+            }
 
             //mLinearBinitirovka4.setVisibility(View.VISIBLE);
             mTextBonititirovka4.setText(getString(R.string.text_two_values_with_sc_delimiter,
                     mGoatMeasurementsFound.get(3).getMeasurement().getName(), String.valueOf(mGoatMeasurementsFound.get(3).getValue())));
-            mSeekBonitirovka4.setProgress(mGoatMeasurementsFound.get(3).getValue());
+            //mSeekBonitirovka4.setProgress(mGoatMeasurementsFound.get(3).getValue());
+            if(mGoatMeasurementsFound.get(3).getValue()!=null){
+                mSeekBonitirovka1.setProgress(mGoatMeasurementsFound.get(3).getValue());
+            }else{
+                mSeekBonitirovka1.setProgress(0);
+            }
 
             //mLinearBinitirovka5.setVisibility(View.VISIBLE);
             mTextBonititirovka5.setText(getString(R.string.text_two_values_with_sc_delimiter,
                     mGoatMeasurementsFound.get(4).getMeasurement().getName(), String.valueOf(mGoatMeasurementsFound.get(4).getValue())));
-            mSeekBonitirovka5.setProgress(mGoatMeasurementsFound.get(4).getValue());
+            //mSeekBonitirovka5.setProgress(mGoatMeasurementsFound.get(4).getValue());
+            if(mGoatMeasurementsFound.get(4).getValue()!=null){
+                mSeekBonitirovka1.setProgress(mGoatMeasurementsFound.get(4).getValue());
+            }else{
+                mSeekBonitirovka1.setProgress(4);
+            }
         }else{
             resetBonitorvka();
         }
@@ -1792,8 +1834,8 @@ public class GoatAddReaderActivity extends AppCompatActivity
                 };
             }
 
-            if(mGoatVetIs.getBreed()!=null && mGoatVetIs.getBreed().equalsIgnoreCase(mGoatFound.getBreed().getBreedName()) ||
-                    mGoatVetIs.getBreed().equalsIgnoreCase(mGoatFound.getBreed().getCodeName())){
+            if(mGoatVetIs.getBreed()!=null && (mGoatVetIs.getBreed().equalsIgnoreCase(mGoatFound.getBreed().getBreedName()) ||
+                    mGoatVetIs.getBreed().equalsIgnoreCase(mGoatFound.getBreed().getCodeName()))){
                 mTextBreedBook.setBackgroundColor(Color.GREEN);
                 mTextBreedVetIS.setBackgroundColor(Color.GREEN);
                 mTextBreedVetIS.setText(mGoatVetIs.getBreed());
@@ -1802,6 +1844,9 @@ public class GoatAddReaderActivity extends AppCompatActivity
                 mTextBreedBook.setBackgroundColor(Color.RED);
                 mTextBreedVetIS.setBackgroundColor(Color.RED);
                 mTextBreedVetIS.setText(mGoatVetIs.getBreed());
+            }else if (mGoatVetIs.getBreed()==null){
+                mTextBreedVetIS.setBackgroundColor(Color.RED);
+                mTextBreedVetIS.setText("Лиспва във ВетИС");
             }
 
             if(mGoatVetIs.getSelectionControl()){
@@ -2068,6 +2113,11 @@ public class GoatAddReaderActivity extends AppCompatActivity
     private class InitActivity extends AsyncTask<Void, Integer, Boolean>{
         private Context mContext;
         private ProgressDialog mProgressDialog;
+
+        private int foundGoatsPerFarm1 = 0;
+        private int foundGoatsPerFarm2 = 0;
+        private int foundGoatsPerFarm3 = 0;
+
         public InitActivity(Context ctx){
             mContext = ctx;
             mProgressDialog = new ProgressDialog(mContext);
@@ -2098,6 +2148,13 @@ public class GoatAddReaderActivity extends AppCompatActivity
                         .where()
                         .eq("localVisitProtocol_id", mLocalVisitProtocol.getId())
                         .queryForFirst().getLst_localGoat());*/
+
+                foundGoatsPerFarm1 = dbHelper.getDaoLocalGoat().queryBuilder()
+                        .where().eq("farm_id", mFarmRead).query().size();
+                foundGoatsPerFarm2 = dbHelper.getDaoLocalGoat().queryBuilder()
+                        .where().ge("dateLastUpdated", mLocalVisitProtocol.getDateAddedToSystem()).query().size();
+                foundGoatsPerFarm3 = dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat().size();
+
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -2131,6 +2188,12 @@ public class GoatAddReaderActivity extends AppCompatActivity
             if(mProgressDialog.isShowing()){
                 mProgressDialog.cancel();
             }
+
+            Toast.makeText(getApplicationContext(),"Намерени са:\n"
+                    +String.valueOf(foundGoatsPerFarm1)+" по ферма\n"
+                    +String.valueOf(foundGoatsPerFarm2)+" по дата (след създаване на протокола)\n"
+                    +String.valueOf(foundGoatsPerFarm3)+" по несинхронизиран протокол\n",
+                    Toast.LENGTH_LONG).show();
 
             if(mMenuPrevious!=null && mMenuNext!=null){
                 if(GOATS_ARRAY.size()>0){
@@ -2228,7 +2291,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
                     .or().like("secondVeterinaryNumber", "%"+mEditTextVetCode1.getText().toString());
                     gqb.join(fgqb);
                     if(gqb.query().size()>0) mGoatFound = gqb.query().get(0);
-                    if(mGoatFound==null){
+                    /*if(mGoatFound==null &&  mEditTextBreedingCode1.getText().toString().length()>0){
                         QueryBuilder<Goat, Long> gqb2 = dbHelper.getDaoGoat().queryBuilder();
                         gqb2.selectColumns("firstVeterinaryNumber", "secondVeterinaryNumber",
                                 "firstBreedingNumber", "secondBreedingNumber",
@@ -2240,7 +2303,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
                                 .eq("firstBreedingNumber", mEditTextBreedingCode1.getText().toString());
                         gqb2.join(fgqb);
                         if(gqb2.query().size()==1) mGoatFound = gqb2.query().get(0);
-                    }
+                    }*/
 
                 }else{
                     //QueryBuilder<FarmGoat, Long> fgqb = dbHelper.getDaoFarmGoat().queryBuilder();
@@ -2252,7 +2315,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
                             .eq("secondBreedingNumber", mEditTextBreedingCode1.getText().toString());
                             //.queryForFirst();
                     gqb.join(fgqb);
-                    if(gqb.query().size()==1) mGoatFound = gqb.query().get(0);
+                    if(gqb.query().size()>0) mGoatFound = gqb.query().get(0);
                     //mGoatFound = gqb.queryForFirst();
                 }
                 if (mGoatFound != null) {
@@ -2284,7 +2347,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
                             .or().like("secondVeterinaryNumber", "%"+mGoatFound.getFirstVeterinaryNumber())
                             .or().like("secondVeterinaryNumber", "%"+mGoatFound.getSecondVeterinaryNumber())*/
                             //.queryForFirst();
-                    if(gvQB.query().size()==1) mGoatVetIs = gvQB.query().get(0);
+                    if(gvQB.query().size()>0) mGoatVetIs = gvQB.query().get(0);
 
                     QueryBuilder<Measurement, Integer> mqb = dbHelper.getDaoMeasurement().queryBuilder();
                     mqb.selectColumns("_id", "type", "name").orderBy("name", true)
@@ -2320,6 +2383,7 @@ public class GoatAddReaderActivity extends AppCompatActivity
             }else{
                 mButtonSave.setEnabled(false);
                 clearSearchResult();
+                if(currentIndex >= GOATS_ARRAY.size()) mSpinnerBreed.setSelection(0);
             }
 
             mRelativeProgress.setVisibility(View.INVISIBLE);
