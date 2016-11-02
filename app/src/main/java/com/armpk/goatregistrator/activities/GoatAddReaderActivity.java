@@ -17,6 +17,7 @@ import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Parcelable;
@@ -81,6 +82,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -93,6 +99,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
@@ -123,9 +130,9 @@ public class GoatAddReaderActivity extends AppCompatActivity
     GoatStatus goatStatus = null;
     GoatStatus tempGoatStatus = null;
 
-    //private String GOATS_KEY;
-    //private Set<String> GOATS_SET;
-    private ArrayList<LocalGoat> GOATS_ARRAY;
+    private String GOATS_KEY;
+    private Set<String> GOATS_SET;
+    private ArrayList<LocalGoat> GOATS_ARRAY = new ArrayList<LocalGoat>();;
     private int currentIndex = -1;
 
     private Menu mMainMenu;
@@ -2138,45 +2145,97 @@ public class GoatAddReaderActivity extends AppCompatActivity
         protected Boolean doInBackground(Void... params) {
             final boolean[] success = {false};
 
-            GOATS_ARRAY = new ArrayList<LocalGoat>();
             try {
-                GOATS_ARRAY = new ArrayList<LocalGoat>(/*dbHelper.getDaoLocalGoat().queryBuilder()
-                        .orderBy("dateLastUpdated", true)
-                        .where()
-                        .eq("localVisitProtocol_id", mLocalVisitProtocol.getId()).query()*/
-                        dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat()
 
-                );
+                if(dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat()!=null) {
+                    GOATS_ARRAY = new ArrayList<LocalGoat>(/*dbHelper.getDaoLocalGoat().queryBuilder()
+                            .orderBy("dateLastUpdated", true)
+                            .where()
+                            .eq("localVisitProtocol_id", mLocalVisitProtocol.getId()).query()*/
+                            dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat()
+                    );
+                }
                 /*GOATS_ARRAY = new ArrayList<LocalGoat>(dbHelper.getDaoLocalVisitProtocol().queryBuilder()
                         .where()
                         .eq("localVisitProtocol_id", mLocalVisitProtocol.getId())
                         .queryForFirst().getLst_localGoat());*/
+                if(GOATS_ARRAY.size()==0) GOATS_ARRAY = new ArrayList<LocalGoat>(dbHelper.getDaoLocalGoat().queryBuilder()
+                        .where().eq("farm_id", mFarmRead).query());
+
+
+                /*List<LocalGoat> tlg = dbHelper.getDaoLocalGoat().queryBuilder()
+                        .selectColumns("_id", "firstVeterinaryNumber", "secondVeterinaryNumber",
+                                "firstBreedingNumber", "secondBreedingNumber",
+                                "dateAddedToSystem", "dateLastUpdated").query();
+                for(LocalGoat lg : tlg){
+                    if(
+                            lg.getDateAddedToSystem().after(new Date(Long.parseLong("1476445540413")))
+                            &&
+                                    lg.getDateLastUpdated().before(new Date(Long.parseLong("1476460540413")))){
+                        GOATS_ARRAY.add(lg);
+                    }
+                }*/
 
                 /*foundGoatsPerFarm1 = dbHelper.getDaoLocalGoat().queryBuilder()
-                        .where().eq("farm_id", mFarmRead).query().size();*/
-                /*foundGoatsPerFarm2 = dbHelper.getDaoLocalGoat().queryBuilder()
-                        .where().ge("dateLastUpdated", mLocalVisitProtocol.getDateAddedToSystem()).query().size();*/
-                //foundGoatsPerFarm3 = dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat().size();
+                        .where().eq("farm_id", mFarmRead).query().size();
+                //foundGoatsPerFarm2 = dbHelper.getDaoLocalGoat().queryBuilder()
+                        //.where().ge("dateLastUpdated", mLocalVisitProtocol.getDateAddedToSystem()).query().size();*/
+                foundGoatsPerFarm3 = dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat().size();
 
             } catch (SQLException e) {
                 e.printStackTrace();
             }
 
             currentIndex = GOATS_ARRAY.size();
-            /*GOATS_KEY = Globals.TEMPORARY_GOATS_FOR_PROTOCOL + String.valueOf(mVisitProtocol.getFarm().getId()) + "_" + String.valueOf(mVisitProtocol.getDateAddedToSystem().getTime());
+
+
+            /*FileOutputStream fOut = null;
+            try {
+                String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+                File myDir = new File(root + "/saved_images");
+                myDir.mkdirs();
+                String fname = "goat_registrator_sp.txt";
+                File file = new File(myDir, fname);
+                fOut = new FileOutputStream(file);//new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString()+"/gr", "goat_registrator_sp.txt"));
+
+                OutputStreamWriter osw = new OutputStreamWriter(fOut);
+                Map<String, ?> allEntries = mSharedPreferences.getAll();
+                for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+                    //Log.d("map values", entry.getKey() + ": " + entry.getValue().toString());
+                    if(entry.getValue() instanceof Set){
+                        Iterator iter = ((Set<String>)entry.getValue()).iterator();
+                        while (iter.hasNext()) {
+                            osw.write(entry.getKey()+"->"+iter.next().toString()+"\n");
+                        }
+                    }else {
+                        osw.write(entry.getKey()+"->"+entry.getValue().toString()+"\n");
+                    }
+                }
+                osw.flush();
+                osw.close();
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }*/
+
+
+            /*GOATS_KEY = Globals.TEMPORARY_GOATS_FOR_PROTOCOL + //String.valueOf(mVisitProtocol.getFarm().getId()) +
+                    "155_" + String.valueOf(mLocalVisitProtocol.getDateAddedToSystem().getTime());
             GOATS_SET = mSharedPreferences.getStringSet(GOATS_KEY, new HashSet<String>());
 
-            GOATS_ARRAY = new ArrayList<Goat>();
+            List<Goat> GOATS_ARR = new ArrayList<Goat>();
             Iterator iter = GOATS_SET.iterator();
             try {
                 while (iter.hasNext()) {
-                    GOATS_ARRAY.add(Globals.jsonToObject(new JSONObject(iter.next().toString()), Goat.class));
+                    GOATS_ARR.add(Globals.jsonToObject(new JSONObject(iter.next().toString()), Goat.class));
                 }
             }catch (JSONException e){
                 e.printStackTrace();
             }
-            sortSingleListByLastUpdated(GOATS_ARRAY);
-            currentIndex = GOATS_ARRAY.size();*/
+            //sortSingleListByLastUpdated(GOATS_ARRAY);
+            //currentIndex = GOATS_ARRAY.size();*/
 
             return success[0];
         }
@@ -2193,8 +2252,8 @@ public class GoatAddReaderActivity extends AppCompatActivity
             }
 
             /*Toast.makeText(getApplicationContext(),"Намерени са:\n"
-                    +String.valueOf(foundGoatsPerFarm1)+" по ферма\n"
-                    +String.valueOf(foundGoatsPerFarm2)+" по дата (след създаване на протокола)\n"
+                    //+String.valueOf(foundGoatsPerFarm1)+" по ферма\n"
+                    //+String.valueOf(foundGoatsPerFarm2)+" по дата (след създаване на протокола)\n"
                     +String.valueOf(foundGoatsPerFarm3)+" по несинхронизиран протокол\n",
                     Toast.LENGTH_LONG).show();*/
 

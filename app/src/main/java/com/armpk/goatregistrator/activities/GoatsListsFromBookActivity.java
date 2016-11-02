@@ -69,7 +69,7 @@ public class GoatsListsFromBookActivity  extends AppCompatActivity {
         now = new GregorianCalendar();
         now.setTimeInMillis(System.currentTimeMillis());
 
-        setContentView(R.layout.activity_visit_protocol_goats_lists);
+        setContentView(R.layout.activity_goat_list_from_book);
 
         mWebView = (WebView)findViewById(R.id.webForPrint);
         mButtonPrint = (Button)findViewById(R.id.buttonPrint);

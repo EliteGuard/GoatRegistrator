@@ -74,6 +74,8 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
 
     private static final String ARG_FARM = "farm";
     private static final String ARG_VISIT_PROTOCOL = "visit_protocol";
+    private static final String ARG_LOCAL_VP_ID = "local_visit_protocol_id";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -219,7 +221,6 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
         Bundle args = new Bundle();
         args.putSerializable(ARG_VISIT_PROTOCOL, vp);
         args.putSerializable(ARG_FARM, vp.getFarm());
-        intent.putExtras(args);
         try {
             //Globals.savePreferences(Globals.TEMPORARY_VISIT_PROTOCOL, Globals.objectToJson(vp).toString(), this);
             /*Set<String> tempProtocols = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
@@ -228,28 +229,31 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
             String key = Globals.TEMPORARY_ACTIVITIES_FOR_PROTOCOL+String.valueOf(vp.getFarm().getId())+"_"+String.valueOf(vp.getDateAddedToSystem().getTime());
             Globals.savePreferences(key, mVisitActivitiesIds, this);*/
 
-            dbHelper.getDaoLocalVisitProtocol().create(vp);
-            for(String s : mVisitActivitiesIds){
-                VisitActivity va = dbHelper.getDaoVisitActivity().queryForId(Integer.valueOf(s));
-                LocalVisitProtocolVisitActivity lvpva = new LocalVisitProtocolVisitActivity();
+            if(dbHelper.getDaoLocalVisitProtocol().create(vp)>0) {
+                args.putLong(ARG_LOCAL_VP_ID, vp.getId());
+                intent.putExtras(args);
+                for (String s : mVisitActivitiesIds) {
+                    VisitActivity va = dbHelper.getDaoVisitActivity().queryForId(Integer.valueOf(s));
+                    LocalVisitProtocolVisitActivity lvpva = new LocalVisitProtocolVisitActivity();
 
-                lvpva.setVisitActivity(va);
-                lvpva.setLocalVisitProtocol(vp);
+                    lvpva.setVisitActivity(va);
+                    lvpva.setLocalVisitProtocol(vp);
 
-                QueryBuilder<LocalVisitProtocolVisitActivity, Long> qb = dbHelper.getDaoLocalVisitProtocolVisitActivity().queryBuilder();
-                long rows = qb.where().eq("localVisitProtocol_id", lvpva.getLocalVisitProtocol().getId())
-                        .and()
-                        .eq("visitActivity_id", lvpva.getVisitActivity().getId())
-                        .countOf();
-                if(rows<1){
-                    dbHelper.getDaoLocalVisitProtocolVisitActivity().create(lvpva);
+                    QueryBuilder<LocalVisitProtocolVisitActivity, Long> qb = dbHelper.getDaoLocalVisitProtocolVisitActivity().queryBuilder();
+                    long rows = qb.where().eq("localVisitProtocol_id", lvpva.getLocalVisitProtocol().getId())
+                            .and()
+                            .eq("visitActivity_id", lvpva.getVisitActivity().getId())
+                            .countOf();
+                    if (rows < 1) {
+                        dbHelper.getDaoLocalVisitProtocolVisitActivity().create(lvpva);
+                    }
                 }
+                startActivity(intent);
+                finish();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        startActivity(intent);
-        finish();
     }
 
     public boolean validateAllFields() throws SQLException {

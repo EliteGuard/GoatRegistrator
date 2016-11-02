@@ -344,13 +344,16 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                         synchronizeVisitProtocol(result);
                         break;
                     case VISIT_PROTOCOL_GOATS:
-                        if(goatCounter>=orderedGoatsForUpload.size()-1){
+                        if(goatCounter>=orderedGoatsForUpload.size()){
                             listVisitProtocol.remove(mVPtoDELETE);
                             adapterResults.notifyDataSetChanged();
                             RestConnection.closeProgressDialog();
                             Toast.makeText(VisitProtocolsNotSyncedActivity.this, "УСПЕШНО импортиране на КОЗИ от протокол!", Toast.LENGTH_LONG).show();
-                        }else {
+                        }else if(goatCounter<orderedGoatsForUpload.size()){
                             continueUploadingGoats(result, goatCounter);
+                        }else{
+                            RestConnection.closeProgressDialog();
+                            Toast.makeText(VisitProtocolsNotSyncedActivity.this, "Грешка при импортиране на коза в системата!", Toast.LENGTH_LONG).show();
                         }
                         break;
                 }
@@ -399,11 +402,20 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
         Set<String> spg = mSharedPreferences.getStringSet(keyGoats, new HashSet<String>());
         for (String str : spg) orderedGoatsForUpload.add(str);*/
         try {
+            boolean foundForProtocol = false;
             for(LocalGoat lg : dbHelper.getDaoLocalVisitProtocol().queryBuilder()
                     .where().eq("real_id", vp.getId())
                     .queryForFirst().getLst_localGoat() ){
                 orderedGoatsForUpload.add(lg);
+                foundForProtocol = true;
             }
+
+            if(!foundForProtocol){
+                for(LocalGoat lg : dbHelper.getDaoLocalGoat().queryBuilder()
+                        .where().eq("farm_id", vp.getFarm().getId()).query()){
+                    orderedGoatsForUpload.add(lg);
+                }
+            };
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -465,7 +477,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
             }
 
             goatO.put("processed_id", pid+goatCounter);
-            goatCounter++;
+
 
             if(orderedGoatsForUpload.get(i).getRealId()!=null) goatO.put("condition", "old");
             else goatO.put("condition", "new");
@@ -475,8 +487,9 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
             goatO.put("lst_goatMeasurements", measurements);
 
             localGoats.put(goatO);
+            goatCounter++;
 
-            if(goatCounter==10 || i==orderedGoatsForUpload.size()-1){
+            //if(goatCounter==10 || i==orderedGoatsForUpload.size()-1){
                 RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_GOATS,
                         String.valueOf(vp.getId()), VisitProtocolsNotSyncedActivity.this);
                 mRestPutVisitProtocol.setAction(RestConnection.Action.POST);
@@ -492,7 +505,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                 mRestPutVisitProtocol.setMessage("Импортиране на "+goatCounter+" от "+orderedGoatsForUpload.size()+" кози");
                 mRestPutVisitProtocol.execute((Void) null);
                 break;
-            }
+            //}
 
         }
 
@@ -513,12 +526,12 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
             pid += (cal.get(Calendar.YEAR)-2000);
 
 
-            for(int i=counter+1; i<orderedGoatsForUpload.size(); i++){
+            //for(int i=counter+1; i<orderedGoatsForUpload.size(); i++){
 
                 JSONArray farmsA = new JSONArray();
                 Farm tf = new Farm();
-                if(orderedGoatsForUpload.get(i).getFarm()!=null) {
-                    tf.setId(orderedGoatsForUpload.get(i).getFarm().getId());
+                if(orderedGoatsForUpload.get(counter).getFarm()!=null) {
+                    tf.setId(orderedGoatsForUpload.get(counter).getFarm().getId());
                     farmsA.put(Globals.objectToJson(tf));
                 }else{
                     tf.setId(vp.getFarm().getId());
@@ -535,12 +548,13 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
                     QueryBuilder<LocalGoatMeasurement, Long> lgmQb = dbHelper.getDaoLocalGoatMeasurements().queryBuilder();
                     lgmQb.where()
-                            .eq("goat_id", orderedGoatsForUpload.get(i));
+                            .eq("goat_id", orderedGoatsForUpload.get(counter));
 
                     lgmQb.join(mqb);
 
                     for(LocalGoatMeasurement lgm : lgmQb.query()){
                         lgm.setId(null);
+                        lgm.setLocalGoat(null);
                         measurements.put(Globals.objectToJson(lgm));
                     }
                     /*measurements = new JSONArray(
@@ -552,19 +566,20 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                 }
 
 
-                orderedGoatsForUpload.get(i).setLst_localGoatMeasurements(null);
-                orderedGoatsForUpload.get(i).setLocalVisitProtocol(null);
+                orderedGoatsForUpload.get(counter).setLst_localGoatMeasurements(null);
+                orderedGoatsForUpload.get(counter).setLocalVisitProtocol(null);
+                orderedGoatsForUpload.get(counter).setFarm(null);
 
-                JSONObject goatO = new JSONObject(Globals.objectToJson(orderedGoatsForUpload.get(i)).toString());
+                JSONObject goatO = new JSONObject(Globals.objectToJson(orderedGoatsForUpload.get(counter)).toString());
 
                 if(goatO.opt("id")==null) {
                     goatO.put("id", JSONObject.NULL);
                 }
 
                 goatO.put("processed_id", pid+goatCounter);
-                goatCounter++;
 
-                if(orderedGoatsForUpload.get(i).getRealId()!=null) goatO.put("condition", "old");
+
+                if(orderedGoatsForUpload.get(counter).getRealId()!=null) goatO.put("condition", "old");
                 else goatO.put("condition", "new");
 
                 goatO.put("lst_farms", farmsA);
@@ -572,6 +587,8 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                 goatO.put("lst_goatMeasurements", measurements);
 
                 localGoats.put(goatO);
+
+                goatCounter++;
 
                 /*JSONObject goatO = new JSONObject(orderedGoatsForUpload.get(i));
                 if(goatO.opt("id")==null) {
@@ -607,7 +624,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
 
                 localGoats.put(goatO);*/
 
-                if(goatCounter%10==0 || i>=orderedGoatsForUpload.size()-1){
+                //if(goatCounter%10==0 || i>=orderedGoatsForUpload.size()-1){
                     RestConnection mRestPutVisitProtocol = new RestConnection(this, RestConnection.DataType.VISIT_PROTOCOL_GOATS,
                             String.valueOf(vp.getId()), VisitProtocolsNotSyncedActivity.this);
                     mRestPutVisitProtocol.setAction(RestConnection.Action.POST);
@@ -621,11 +638,11 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                         e.printStackTrace();
                     }*/
                     mRestPutVisitProtocol.setJSONArray(localGoats);
-                    mRestPutVisitProtocol.setMessage("Импортиране на "+goatCounter+" от "+orderedGoatsForUpload.size()+" кози");
+                    mRestPutVisitProtocol.setMessage("Импортиране на "+counter+" от "+orderedGoatsForUpload.size()+" кози");
                     mRestPutVisitProtocol.execute((Void) null);
-                    break;
-                }
-            }
+                    //break;
+                //}
+            //}
 
 
         } catch (JSONException e) {

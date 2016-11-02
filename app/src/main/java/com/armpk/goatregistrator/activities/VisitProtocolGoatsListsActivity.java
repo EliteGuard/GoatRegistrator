@@ -980,7 +980,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
 
             //ArrayList<Goat> goatsToProcess = new ArrayList<Goat>();
-            ArrayList<LocalGoat> localReadyforProcess = new ArrayList<LocalGoat>();
+            List<LocalGoat> localReadyforProcess = new ArrayList<LocalGoat>();
             if(isProtocolSynced){
                 try {
                     /*List<LocalVisitProtocol> lvp1 = dbHelper.getDaoLocalVisitProtocol().queryBuilder()
@@ -1014,7 +1014,8 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
                     localReadyforProcess = new ArrayList<LocalGoat>(
                             dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat());
-
+                    if(localReadyforProcess.size()<1) localReadyforProcess = dbHelper.getDaoLocalGoat().queryBuilder()
+                            .where().eq("farm_id", mLocalVisitProtocol.getFarm().getId()).query();
                     /*for(LocalGoat lg : localReadyforProces){
                         lg.getFarm().setLst_visitProtocol(null);
                         lg.setLocalVisitProtocol(null);
