@@ -13,11 +13,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.armpk.goatregistrator.R;
 import com.armpk.goatregistrator.adapters.VisitProtocolGoatListExpandableAdapter;
@@ -104,6 +106,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_visit_protocol_goats_lists);
 
         mWebView = (WebView)findViewById(R.id.webForPrint);
+
         mButtonPrint = (Button)findViewById(R.id.buttonPrint);
         mButtonPrint.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -146,7 +149,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 Log.i("PRINTING INFO", "page finished loading " + url);
                 createWebPrintJob(view);
-                mWebView = null;
+                //mWebView = null;
             }
         });
 
@@ -235,26 +238,23 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         htmlDocument.append("</body></html>");
         webView.loadDataWithBaseURL(null, htmlDocument.toString(), "text/HTML", "UTF-8", null);
         mWebView = webView;
-        finish();
     }
 
     private void beginHTML(StringBuffer htmlDocument) {
         htmlDocument.append("<html>" +
                 "<head>\n" +
                 "<style type=\"text/css\">\n" +
-                "table, th, td {\n" +
+                "th, td {\n" +
                 "    border: 1px solid black;\n" +
                 "}\n" +
-                "table { page-break-inside:auto; page-break-after:always }\n" +
-                "    tr    { page-break-inside:avoid}\n" +
-                "    thead { display:table-header-group }\n" +
-                "    tfoot { display:table-row-group }" +
+                "table { page-break-inside:auto; page-break-after:always ;}\n" +
+                "tr { page-break-inside:avoid; page-break-after:auto;}\n" +
+                "thead { display:table-header-group; }\n" +
+                //"    tfoot { display:table-header-group }" +
                 "@media print {\n" +
                 "      .output {\n" +
                 "        -ms-transform: rotate(270deg);\n" +
-                "        /* IE 9 */\n" +
                 "        -webkit-transform: rotate(270deg);\n" +
-                "        /* Chrome, Safari, Opera */\n" +
                 "        transform: rotate(270deg);\n" +
                 "        top: 1.5in;\n" +
                 "        left: -1in;\n" +
@@ -263,9 +263,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 //".pagebreak { page-break-before: always; }" +
                 "@page  \n" +
                 "{ \n" +
-                "    size: landscape;   /* auto is the initial value */ \n" +
-                "\n" +
-                "    /* this affects the margin in the printer settings */ \n" +
+                "    size: landscape;    \n" +
                 "    margin: 5mm 10mm 10mm 10mm;  \n" +
                 "}" +
                 "</style>\n" +
@@ -303,7 +301,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 .append(farm.getBreedingPlaceAddress().getCity().getArea())
                 .append(",<br> No. ЖО: ")
                 .append(farm.getBreedingPlaceNumber());
-        htmlDocument.append("</p><b><table style=\"width:100%;page-break-after: always\">");
+        htmlDocument.append("</b></p><table style=\"width:100%;\">");
         insertTableHeader(htmlDocument);
 
         int counter = 0;
@@ -619,14 +617,35 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         PrintManager printManager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
 
         // Get a print adapter instance
-        PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter();
+        PrintDocumentAdapter printAdapter = null;
+        String jobName = "";//getString(R.string.app_name) +  + " Document";
+        if(isProtocolSynced) {
+            printAdapter = webView.createPrintDocumentAdapter(mVisitProtocol.getFarm().getCompanyName()
+            +"_"+Globals.getDateShort(mVisitProtocol.getVisitDate()));
+            //jobName = getString(R.string.app_name) + mVisitProtocol.getId() + " Document";
+            jobName = mVisitProtocol.getFarm().getCompanyName().trim()
+                    +"_"+Globals.getDateShort(mVisitProtocol.getVisitDate());
+        }else{
+            printAdapter = webView.createPrintDocumentAdapter(mLocalVisitProtocol.getFarm().getCompanyName()
+                    +"_"+Globals.getDateShort(mLocalVisitProtocol.getVisitDate()));
+            //jobName = getString(R.string.app_name) + mLocalVisitProtocol.getId() + " Document";
+            jobName = mLocalVisitProtocol.getFarm().getCompanyName().trim()
+                    +"_"+Globals.getDateShort(mLocalVisitProtocol.getVisitDate());
+        }
+
 
         // Create a print job with name and adapter instance
-        String jobName = getString(R.string.app_name) + " Document";
-        PrintJob printJob = printManager.print(jobName, printAdapter, new PrintAttributes.Builder().build());
+
+
+        PrintAttributes.Builder builder = new PrintAttributes.Builder();
+        builder.setMediaSize(PrintAttributes.MediaSize.ISO_A4);
+
+        PrintJob printJob = printManager.print(jobName, printAdapter, builder.build());
 
         // Save the job object for later status checking
         //mPrintJobs.add(printJob);
+
+        //finish();
     }
 
     private void processGoatToLists(Goat gt){
@@ -900,7 +919,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
     private void distributeLocalGoatsToListsByFarm(List<LocalGoat> goatsToProcess) {
         long farmId = -1;
 
-        try {
+        //try {
             for (LocalGoat goat : goatsToProcess) {
 
                 Farm farm1 = goat.getFarm();
@@ -918,13 +937,13 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 }
                 if(goat.getFarm()!=null) goat.getFarm().setLst_visitProtocol(null);
                 goat.setLocalVisitProtocol(null);
-                list.add(Globals.jsonToObject(
-                        Globals.objectToJson(goat), Goat.class
-                ));
+                /*JSONObject gj = Globals.objectToJson(goat);
+                list.add(Globals.jsonToObject(gj, Goat.class));*/
+                list.add(new Goat(goat));
             }
-        } catch (JSONException e) {
+        /*} catch (JSONException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     private class InitActivity extends AsyncTask<Void, Integer, Boolean> {

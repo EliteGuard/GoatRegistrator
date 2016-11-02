@@ -2140,20 +2140,23 @@ public class GoatAddReaderActivity extends AppCompatActivity
 
             GOATS_ARRAY = new ArrayList<LocalGoat>();
             try {
-                GOATS_ARRAY = new ArrayList<LocalGoat>(dbHelper.getDaoLocalGoat().queryBuilder()
+                GOATS_ARRAY = new ArrayList<LocalGoat>(/*dbHelper.getDaoLocalGoat().queryBuilder()
                         .orderBy("dateLastUpdated", true)
                         .where()
-                        .eq("localVisitProtocol_id", mLocalVisitProtocol.getId()).query());
+                        .eq("localVisitProtocol_id", mLocalVisitProtocol.getId()).query()*/
+                        dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat()
+
+                );
                 /*GOATS_ARRAY = new ArrayList<LocalGoat>(dbHelper.getDaoLocalVisitProtocol().queryBuilder()
                         .where()
                         .eq("localVisitProtocol_id", mLocalVisitProtocol.getId())
                         .queryForFirst().getLst_localGoat());*/
 
-                foundGoatsPerFarm1 = dbHelper.getDaoLocalGoat().queryBuilder()
-                        .where().eq("farm_id", mFarmRead).query().size();
-                foundGoatsPerFarm2 = dbHelper.getDaoLocalGoat().queryBuilder()
-                        .where().ge("dateLastUpdated", mLocalVisitProtocol.getDateAddedToSystem()).query().size();
-                foundGoatsPerFarm3 = dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat().size();
+                /*foundGoatsPerFarm1 = dbHelper.getDaoLocalGoat().queryBuilder()
+                        .where().eq("farm_id", mFarmRead).query().size();*/
+                /*foundGoatsPerFarm2 = dbHelper.getDaoLocalGoat().queryBuilder()
+                        .where().ge("dateLastUpdated", mLocalVisitProtocol.getDateAddedToSystem()).query().size();*/
+                //foundGoatsPerFarm3 = dbHelper.getDaoLocalVisitProtocol().queryForId(mLocalVisitProtocol.getId()).getLst_localGoat().size();
 
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -2189,11 +2192,11 @@ public class GoatAddReaderActivity extends AppCompatActivity
                 mProgressDialog.cancel();
             }
 
-            Toast.makeText(getApplicationContext(),"Намерени са:\n"
+            /*Toast.makeText(getApplicationContext(),"Намерени са:\n"
                     +String.valueOf(foundGoatsPerFarm1)+" по ферма\n"
                     +String.valueOf(foundGoatsPerFarm2)+" по дата (след създаване на протокола)\n"
                     +String.valueOf(foundGoatsPerFarm3)+" по несинхронизиран протокол\n",
-                    Toast.LENGTH_LONG).show();
+                    Toast.LENGTH_LONG).show();*/
 
             if(mMenuPrevious!=null && mMenuNext!=null){
                 if(GOATS_ARRAY.size()>0){

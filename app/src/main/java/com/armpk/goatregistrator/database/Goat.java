@@ -4,6 +4,8 @@ import com.armpk.goatregistrator.database.enums.GoatKidPurpose;
 import com.armpk.goatregistrator.database.enums.Maturity;
 import com.armpk.goatregistrator.database.enums.ModifiedBy;
 import com.armpk.goatregistrator.database.enums.Sex;
+import com.armpk.goatregistrator.database.mobile.LocalGoat;
+import com.armpk.goatregistrator.database.mobile.LocalGoatMeasurement;
 import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DataType;
@@ -169,6 +171,54 @@ public class Goat implements Serializable {
     private String inclusionStatusString;
 	
 	public Goat() { }
+
+	public Goat (LocalGoat lGoat){
+        if(lGoat.getRealId() != null) this._id = lGoat.getRealId();
+        if(lGoat.getAppliedForSelectionControlYear() != null) this.appliedForSelectionControlYear = lGoat.getAppliedForSelectionControlYear();
+        if(lGoat.getBirthDate() != null) this.birthDate = lGoat.getBirthDate();
+        if(lGoat.getBirthPlace() != null) this.birthPlace = lGoat.getBirthPlace();
+        if(lGoat.getBreed() != null) this.breed = lGoat.getBreed();
+        if(lGoat.getCertificateNumber() != null) this.certificateNumber = lGoat.getCertificateNumber();
+        if(lGoat.getColor() != null) this.color = lGoat.getColor();
+        if(lGoat.getDateAddedToSystem() != null) this.dateAddedToSystem = lGoat.getDateAddedToSystem();
+        if(lGoat.getDateDeregistered() != null) this.dateDeregistered = lGoat.getDateDeregistered();
+        if(lGoat.getDateLastUpdated() != null) this.dateLastUpdated = lGoat.getDateLastUpdated();
+        if(lGoat.getDateWeaning() != null) this.dateWeaning = lGoat.getDateWeaning();
+        if(lGoat.getFather() != null) this.father = lGoat.getFather();
+        if(lGoat.getFatherNumber() != null) this.fatherNumber = lGoat.getFatherNumber();
+        if(lGoat.getFirstBreedingNumber() != null) this.firstBreedingNumber = lGoat.getFirstBreedingNumber();
+        if(lGoat.getFirstVeterinaryNumber() != null) this.firstVeterinaryNumber = lGoat.getFirstVeterinaryNumber();
+        if(lGoat.getGoatKidPurpose() != null) this.goatKidPurpose = lGoat.getGoatKidPurpose();
+        if(lGoat.getHerbookEntryNumber() != null) this.herbookEntryNumber = lGoat.getHerbookEntryNumber();
+        if(lGoat.getHerbookSection() != null) this.herbookSection = lGoat.getHerbookSection();
+        if(lGoat.getHerdbookVolumeNumber() != null) this.herbookVolumeNumber = lGoat.getHerdbookVolumeNumber();
+        if(lGoat.getHerd() != null) this.herd = lGoat.getHerd();
+        if(lGoat.getInclusionStatusString() != null) this.inclusionStatusString = lGoat.getInclusionStatusString();
+        if(lGoat.getInclusionStatusYear() != null) this.inclusionStatusYear = lGoat.getInclusionStatusYear();
+        if(lGoat.getKidFromPregnancy() != null) this.kidFromPregnancy = lGoat.getKidFromPregnancy();
+        if(lGoat.getLastModifiedBy() != null) this.lastModifiedBy = lGoat.getLastModifiedBy();
+        if(lGoat.getLastUpdatedByUser() != null) this.lastUpdatedByUser = lGoat.getLastUpdatedByUser();
+        //if(lGoat.get != null) this.lst_fertilityStates = lGoat.();
+        //if(lGoat.get != null) this.lst_goatExteriorMarks = lGoat.();
+        //if(lGoat.getLst_goatMeasurements() != null) this.lst_goatMeasurements = lGoat.getLst_goatMeasurements();
+        //if(lGoat.getlst != null) this.lst_lactations = lGoat.();
+        //if(lGoat.get != null) this.lst_milkControls = lGoat.();
+        if(lGoat.getMaturity() != null) this.maturity = lGoat.getMaturity();
+        if(lGoat.getMother() != null) this.mother = lGoat.getMother();
+        if(lGoat.getMotherNumber() != null) this.motherNumber = lGoat.getMotherNumber();
+        if(lGoat.getNotes() != null) this.notes = lGoat.getNotes();
+        if(lGoat.getNumberInCertificate() != null) this.numberInCertificate = lGoat.getNumberInCertificate();
+        if(lGoat.getNumberInWastageProtocol() != null) this.numberInWastageProtocol = lGoat.getNumberInWastageProtocol();
+        if(lGoat.getSecondBreedingNumber() != null) this.secondBreedingNumber = lGoat.getSecondBreedingNumber();
+        if(lGoat.getSecondVeterinaryNumber() != null) this.secondVeterinaryNumber = lGoat.getSecondVeterinaryNumber();
+        if(lGoat.getSex() != null) this.sex = lGoat.getSex();
+        if(lGoat.getStatus() != null) this.status = lGoat.getStatus();
+        if(lGoat.getThirdBreedingNumber() != null) this.thirdBreedingNumber = lGoat.getThirdBreedingNumber();
+        if(lGoat.getThirdVeterinaryNumber() != null) this.thirdVeterinaryNumber = lGoat.getThirdVeterinaryNumber();
+        if(lGoat.getWastageProtocolNumber() != null) this.wastageProtocolNumber = lGoat.getWastageProtocolNumber();
+        if(lGoat.getWeightAtBirth() != null) this.weightAtBirth = lGoat.getWeightAtBirth();
+        if(lGoat.getWeightAtWeaning() != null) this.weightAtWeaning = lGoat.getWeightAtWeaning();
+	}
 
 	public Long getId() {
 		return _id;
