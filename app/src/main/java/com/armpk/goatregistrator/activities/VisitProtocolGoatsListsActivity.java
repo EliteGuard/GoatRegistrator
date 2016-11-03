@@ -353,8 +353,10 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         //column 4
         if(goat.getFirstVeterinaryNumber()!=null) {
             result.append(createTableCell(goat.getFirstVeterinaryNumber()));
+        }else if(goat.getFirstVeterinaryNumber()==null || (goat.getFirstVeterinaryNumber()!=null && goat.getFirstVeterinaryNumber().equals(""))) {
+            result.append(createTableCell("НЯМА МАРКА"));
         }else{
-            result.append(createTableCell(""));
+            result.append(createTableCell("НЯМА МАРКА"));
         }
 
         //column 5
@@ -370,8 +372,10 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         //column 7
         if(goat.getFirstBreedingNumber()!=null) {
             result.append(createTableCell(goat.getFirstBreedingNumber()));
+        }else if(goat.getFirstBreedingNumber()==null || (goat.getFirstBreedingNumber()!=null && goat.getFirstBreedingNumber().equals(""))) {
+            result.append(createTableCell("НЯМА МАРКА"));
         }else{
-            result.append(createTableCell(""));
+            result.append(createTableCell("НЯМА МАРКА"));
         }
 
         //column 8

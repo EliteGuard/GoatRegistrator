@@ -233,14 +233,14 @@ public class FarmAddActivity extends AppCompatActivity implements
                 mFarm.setMol(fragment.getMol());
             }
 
-            if(fragment.getEik().length()<8){
+            if(fragment.getEik().length()<10){
                 mErrorMessage.append("Невалиден ЕИК номер\n");
                 valid = false;
             }else{
                 mFarm.setEik(Long.parseLong(fragment.getEik()));
             }
 
-            if(fragment.getBulstat().length()<10){
+            if(fragment.getBulstat().length()<9){
                 mErrorMessage.append("Невалиден БУЛСТАТ номер\n");
                 valid = false;
             }else{

@@ -7,8 +7,8 @@ android {
         applicationId "com.armpk.goatregistrator"
         minSdkVersion 22
         targetSdkVersion 24
-        versionCode 121
-        versionName "1.2.1"
+        versionCode 122
+        versionName "1.2.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

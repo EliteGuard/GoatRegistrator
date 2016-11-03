@@ -145,6 +145,14 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                 intent.putExtras(args);
                 startActivity(intent);
                 return true;
+            case R.id.show_goats_for_protocol:
+                Intent listsFromVP = new Intent(this, GoatsListsFromVisitProtocolActivity.class);
+                Bundle argsListsVPG = new Bundle();
+                argsListsVPG.putSerializable(ARG_VISIT_PROTOCOL, lvp);
+                argsListsVPG.putLong(ARG_LOCAL_VP_ID, lvp.getId());
+                listsFromVP.putExtras(argsListsVPG);
+                startActivity(listsFromVP);
+                return true;
             case R.id.show_goats_for_farm:
                 Intent listsFromBook = new Intent(this, GoatsListsFromBookActivity.class);
                 Bundle argsLists = new Bundle();

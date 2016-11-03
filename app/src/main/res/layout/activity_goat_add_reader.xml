@@ -300,18 +300,20 @@
                 </android.support.design.widget.TextInputLayout>
 
                 <TextView
+                    android:id="@+id/text_bonitirovka"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
                     android:gravity="center"
-                    android:text="@string/text_bonitirovka"/>
+                    android:text="@string/text_bonitirovka"
+                    android:visibility="gone"/>
 
                 <LinearLayout
                     android:id="@+id/linearBonitirovka1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:visibility="visible">
+                    android:visibility="gone">
                     <TextView
                         android:id="@+id/textBonitorvka1"
                         android:layout_width="wrap_content"
@@ -732,16 +734,27 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:weightSum="2"
+                        android:orientation="vertical"
                         android:gravity="center">
                         <Button
                             android:id="@+id/buttonSave"
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textSize="16sp"
                             android:text="@string/text_save"/>
+                        <Button
+                            android:id="@+id/dummie"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="16sp"
+                            android:visibility="invisible"/>
+                        <Button
+                            android:id="@+id/buttonDelete"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="16sp"
+                            android:backgroundTint="@color/colorAccent"
+                            android:text="@string/text_delete"/>
                     </LinearLayout>
 
                 </LinearLayout>

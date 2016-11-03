@@ -75,6 +75,7 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
     private static final String ARG_FARM = "farm";
     private static final String ARG_VISIT_PROTOCOL = "visit_protocol";
     private static final String ARG_LOCAL_VP_ID = "local_visit_protocol_id";
+    private static final String ARG_LOCAL_VP_CREATED_NOW = "local_visit_protocol_created_now";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -221,6 +222,7 @@ public class VisitProtocolsAddActivity extends AppCompatActivity implements Date
         Bundle args = new Bundle();
         args.putSerializable(ARG_VISIT_PROTOCOL, vp);
         args.putSerializable(ARG_FARM, vp.getFarm());
+        args.putBoolean(ARG_LOCAL_VP_CREATED_NOW, true);
         try {
             //Globals.savePreferences(Globals.TEMPORARY_VISIT_PROTOCOL, Globals.objectToJson(vp).toString(), this);
             /*Set<String> tempProtocols = mSharedPreferences.getStringSet(Globals.TEMPORARY_VISIT_PROTOCOLS, new HashSet<String>());
