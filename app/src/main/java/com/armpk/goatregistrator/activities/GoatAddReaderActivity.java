@@ -2306,12 +2306,62 @@ public class GoatAddReaderActivity extends AppCompatActivity
                 String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
                 File myDir = new File(root + "/saved_images");
                 myDir.mkdirs();
-                String fname = "goat_registrator_sp.txt";
+                String fname = "goat_registrator_db.txt";
                 File file = new File(myDir, fname);
-                fOut = new FileOutputStream(file);//new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString()+"/gr", "goat_registrator_sp.txt"));
-
+                fOut = new FileOutputStream(file);
                 OutputStreamWriter osw = new OutputStreamWriter(fOut);
-                Map<String, ?> allEntries = mSharedPreferences.getAll();
+
+                try {
+                    List<LocalGoat> lgl = new ArrayList<LocalGoat>(dbHelper.getDaoLocalGoat().queryBuilder()
+                    .selectColumns("_id","appliedForSelectionControlYear","birthDate",
+                            "birthPlace","breed_id","certificateNumber","color","dateAddedToSystem",
+                            "dateDeregistered","dateLastUpdated","dateWeaning","father_id",
+                            "fatherNumber","firstBreedingNumber","firstVeterinaryNumber",
+                            "goatKidPurpose","herbookEntryNumber","herbookSection","herbookVolumeNumber",
+                            "inclusionStatusString","inclusionStatusYear","kidFromPregnancy_id","lastModifiedBy",
+                            "lastUpdatedByUser_id","localVisitProtocol_id","maturity","mother_id","motherNumber",
+                            "notes","numberInCertificate","numberInWastageProtocol","real_id","secondBreedingNumber",
+                            "secondVeterinaryNumber","sex","status_id","thirdBreedingNumber","thirdVeterinaryNumber",
+                            "wastageProtocolNumber","weightAtBirth","weightAtWeaning")
+                            .where().le("_id",50).query()
+                    );
+                    Log.d("EXTRACTION", "STARTED WRITING");
+                    for(int i=0; i<lgl.size(); i++){
+                        LocalGoat tlg = lgl.get(i);
+                        Log.d("EXTRACTION", "GOAT: "+(i+1));
+
+                        if(tlg.getLocalVisitProtocol()!=null){
+                            tlg.getLocalVisitProtocol().setLst_localGoat(null);
+                            tlg.getLocalVisitProtocol().getFarm().setLst_visitProtocol(null);
+                            if(tlg.getLocalVisitProtocol().getFarm2()!=null){
+                                tlg.getLocalVisitProtocol().setFarm2(null);
+                            }
+                        }
+                        if(tlg.getFarm()!=null)tlg.getFarm().setLst_visitProtocol(null);
+                        if(tlg.getHerd()!=null)tlg.getHerd().setLst_goats(null);
+
+                        JSONObject lgmJ = new JSONObject();
+                        lgmJ.put("id", tlg.getLocalId());
+                        JSONArray lgmJA = new JSONArray();
+                        for(LocalGoatMeasurement lgm : dbHelper.getDaoLocalGoatMeasurements().queryBuilder()
+                                .selectColumns("measurement_id", "value")
+                                .where().eq("goat_id", tlg.getLocalId()).query()){
+                            lgm.setLocalGoat(null);
+                            lgmJA.put(Globals.objectToJson(lgm));
+                        }
+                        lgmJ.put("goat_measurements", lgmJA);
+                        tlg.setLst_localGoatMeasurements(null);
+
+                        osw.write(Globals.objectToJson(tlg)+"\n");
+                        osw.write(lgmJ+"\n");
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }*/
+
+                /*Map<String, ?> allEntries = mSharedPreferences.getAll();
                 for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
                     //Log.d("map values", entry.getKey() + ": " + entry.getValue().toString());
                     if(entry.getValue() instanceof Set){

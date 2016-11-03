@@ -577,6 +577,7 @@ public class VisitProtocolsNotSyncedActivity extends AppCompatActivity implement
                 orderedGoatsForUpload.get(counter).setLst_localGoatMeasurements(null);
                 orderedGoatsForUpload.get(counter).setLocalVisitProtocol(null);
                 orderedGoatsForUpload.get(counter).setFarm(null);
+                if(orderedGoatsForUpload.get(counter).getHerd()!=null) orderedGoatsForUpload.get(counter).getHerd().setLst_goats(null);
 
                 JSONObject goatO = new JSONObject(Globals.objectToJson(orderedGoatsForUpload.get(counter)).toString());
 
