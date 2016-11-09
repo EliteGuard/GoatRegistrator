@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.armpk.goatregistrator.R;
 import com.armpk.goatregistrator.database.Goat;
 import com.armpk.goatregistrator.database.enums.Sex;
+import com.armpk.goatregistrator.database.mobile.LocalGoat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,10 +23,10 @@ public class VisitProtocolGoatListExpandableAdapter  extends BaseExpandableListA
     private Context _context;
     private List<String> _listDataHeader; // header titles
     // child data in format of header title, child title
-    private HashMap<String, List<Goat>> _listDataChild;
+    private HashMap<String, List<LocalGoat>> _listDataChild;
 
     public VisitProtocolGoatListExpandableAdapter(Context context, List<String> listDataHeader,
-                                 HashMap<String, List<Goat>> listChildData) {
+                                 HashMap<String, List<LocalGoat>> listChildData) {
         this._context = context;
         this._listDataHeader = listDataHeader;
         this._listDataChild = listChildData;
@@ -67,7 +68,7 @@ public class VisitProtocolGoatListExpandableAdapter  extends BaseExpandableListA
         }
 
         //get the string item from the position "position" from array list to put it on the TextView
-        Goat goat = (Goat) getChild(groupPosition, childPosition);
+        LocalGoat goat = (LocalGoat) getChild(groupPosition, childPosition);
         if (goat != null) {
             if (holder.textViewNumber != null) {
                 holder.textViewNumber.setText(String.valueOf(childPosition+1));
@@ -100,7 +101,7 @@ public class VisitProtocolGoatListExpandableAdapter  extends BaseExpandableListA
                 else holder.textViewBreedNum2.setText("");
             }
             if (holder.textViewNewOld != null){
-                if(goat.getId() != null){
+                if(goat.getRealId() != null){
                     holder.textViewNewOld.setText("Стара");
                 }else{
                     holder.textViewNewOld.setText("Нова");

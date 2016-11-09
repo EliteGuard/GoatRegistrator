@@ -2561,7 +2561,9 @@ public class GoatAddReaderActivity extends AppCompatActivity
                             .or()
                             .eq("farmID", mFarmRead2.getId())
                             .and()
-                            .eq("firstVeterinaryNumber", mGoatFound.getFirstVeterinaryNumber());
+                            .eq("firstVeterinaryNumber", mGoatFound.getFirstVeterinaryNumber())
+                            .or()
+                            .eq("secondVeterinaryNumber", mGoatFound.getFirstVeterinaryNumber());
                             /*.or()
                             .eq("firstVeterinaryNumber", mGoatFound.getSecondVeterinaryNumber())
                             .or()

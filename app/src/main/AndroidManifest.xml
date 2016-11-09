@@ -118,6 +118,9 @@
             android:name=".activities.VisitProtocolGoatsListsActivity"
             android:screenOrientation="landscape" />
         <activity
+            android:name=".activities.GoatsListsFromVisitProtocolActivity"
+            android:screenOrientation="landscape" />
+        <activity
             android:name=".activities.GoatsListsFromBookActivity"
             android:screenOrientation="landscape" />
         <activity android:name=".activities.WebPrintActivity" />

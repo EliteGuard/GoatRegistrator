@@ -69,10 +69,9 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
     private ExpandableListView listViewGoats;
     private Button mButtonPrint;
-    //private VisitProtocolGoatsListsAdapter vpGLadapter;
     private VisitProtocolGoatListExpandableAdapter vpGLEAdapter;
     List<String> listDataHeader;
-    HashMap<String, List<Goat>> listDataChild;
+    HashMap<String, List<LocalGoat>> listDataChild;
 
     private LocalVisitProtocol mLocalVisitProtocol;
     private VisitProtocol mVisitProtocol;
@@ -83,17 +82,17 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
 
 
-    List<Goat> list1 = new ArrayList<>();
-    List<Goat> list2 = new ArrayList<>();
-    List<Goat> list3 = new ArrayList<>();
+    List<LocalGoat> list1 = new ArrayList<>();
+    List<LocalGoat> list2 = new ArrayList<>();
+    /*List<Goat> list3 = new ArrayList<>();
     List<Goat> list4 = new ArrayList<>();
     List<Goat> list5 = new ArrayList<>();
     List<Goat> list6 = new ArrayList<>();
-    List<Goat> list7 = new ArrayList<>();
+    List<Goat> list7 = new ArrayList<>();*/
 
     List<Goat> listG = new ArrayList<>();
 
-    Map<Long, List<Goat>> listsByFarm = new HashMap<Long, List<Goat>>();
+    Map<Long, List<LocalGoat>> listsByFarm = new HashMap<Long, List<LocalGoat>>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,30 +163,31 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
                 list1.clear();
                 list2.clear();
-                list3.clear();
+                /*list3.clear();
                 list4.clear();
                 list5.clear();
                 list6.clear();
-                list7.clear();
+                list7.clear();*/
 
-                List<Goat> temp = listsByFarm.get(pair.getKey());
-                for (Goat g : temp) {
+                List<LocalGoat> temp = listsByFarm.get(pair.getKey());
+                /*for (Goat g : temp) {
                     processGoatToLists(g);
-                }
+                }*/
+                list1.addAll(temp);
                 Farm f = dbHelper.getDaoFarm().queryForId((Long) pair.getKey());
                 f.setLst_visitProtocol(null);
-                processForList6(temp, f);
+                processForListMissing(temp, f);
                 sortLists();
 
 
-                listDataChild = new HashMap<String, List<Goat>>();
+                listDataChild = new HashMap<String, List<LocalGoat>>();
                 listDataChild.put(listDataHeader.get(0), list1);
                 listDataChild.put(listDataHeader.get(1), list2);
-                listDataChild.put(listDataHeader.get(2), list3);
+                /*listDataChild.put(listDataHeader.get(2), list3);
                 listDataChild.put(listDataHeader.get(3), list4);
                 listDataChild.put(listDataHeader.get(4), list5);
                 listDataChild.put(listDataHeader.get(5), list6);
-                listDataChild.put(listDataHeader.get(6), list7);
+                listDataChild.put(listDataHeader.get(6), list7);*/
 
                 vpGLEAdapter = new VisitProtocolGoatListExpandableAdapter(VisitProtocolGoatsListsActivity.this,
                         listDataHeader, listDataChild);
@@ -229,11 +229,11 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
 
         list1.clear();
         list2.clear();
-        list3.clear();
+        /*list3.clear();
         list4.clear();
         list5.clear();
         list6.clear();
-        list7.clear();
+        list7.clear();*/
 
         htmlDocument.append("</body></html>");
         webView.loadDataWithBaseURL(null, htmlDocument.toString(), "text/HTML", "UTF-8", null);
@@ -655,11 +655,8 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
     private void processGoatToLists(Goat gt){
         try {
             //listG.add(Globals.jsonToObject(new JSONObject(s), Goat.class));
-
-
             //Goat gt = Globals.jsonToObject(new JSONObject(s), Goat.class);
             ///
-
             ////
             /*QueryBuilder<FarmGoat, Long> farmGoatLongQb = dbHelper.getDaoFarmGoat().queryBuilder();
             farmGoatLongQb.selectColumns("goat_id");
@@ -682,7 +679,9 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                     .eq("firstVeterinaryNumber", gt.getFirstVeterinaryNumber())
                     .query();
             if(tgv.size()>0) gv=tgv.get(0);
-            //if(gk!=null && gv!=null) {
+
+
+            /*
             //------------ LIST 1 CONDITIONS
             if (gk!=null && gv!=null && gt.getBreed()!=null && gk.getBreed()!=null && gv.getBreed()!=null &&
                     gt.getBreed().getId().equals(gk.getBreed().getId()) && gt.getBreed().getBreedName().equals(gv.getBreed())
@@ -734,8 +733,6 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             //------------ LIST 5 CONDITIONS
             else if (gk!=null && gv==null &&
                     (gt.getFirstVeterinaryNumber()!=null || !gt.getFirstVeterinaryNumber().equals(""))
-                    /*&&
-                    (gk.getFirstVeterinaryNumber()!=null || !gk.getFirstVeterinaryNumber().equals(""))*/
                     ) {
                 list5.add(gt);
             }
@@ -746,13 +743,13 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             //------------ LIST 7 CONDITIONS
             else {
                 list7.add(gt);
-            }
+            }*/
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void processForList6(List<Goat> goatsFromTablet, Farm farm){
+    private void processForListMissing(List<LocalGoat> goatsFromTablet, Farm farm){
 
         //------------ LIST 6 CONDITIONS
         try{
@@ -769,16 +766,34 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             gqb.join(fgqb);
             List<Goat> goatsFromBook = gqb.query();
 
-            for(int i=0; i<goatsFromTablet.size(); i++){
-                //Goat goatT = Globals.jsonToObject(new JSONObject(goatsFromTablet.get(i)), Goat.class);
-                for(int j=0; j<goatsFromBook.size(); j++){
-                    if(goatsFromBook.get(j).getFirstVeterinaryNumber().equals(
-                            goatsFromTablet.get(i).getFirstVeterinaryNumber())  ) goatsFromBook.remove(j) ;
+            for(Goat bg : goatsFromBook){
+                List<GoatFromVetIs> lgv = dbHelper.getDaoGoatFromVetIs().queryBuilder().selectColumns("firstVeterinaryNumber", "secondVeterinaryNumber")
+                        .where()
+                        .eq("firstVeterinaryNumber", bg.getFirstVeterinaryNumber())
+                        .or()
+                        .eq("secondVeterinaryNumber", bg.getSecondVeterinaryNumber()).query();
+                GoatFromVetIs tgv = null;
+                if(lgv.size()==1) tgv = lgv.get(0);
+
+                if(tgv==null){
+                    list2.add(new LocalGoat(bg));
+                }else{
+                    for(LocalGoat lg : goatsFromTablet){
+                        if(bg.getFirstVeterinaryNumber()!=null && lg.getFirstVeterinaryNumber()!=null &&
+                                bg.getFirstVeterinaryNumber().equals(lg.getFirstVeterinaryNumber())){
+
+                        }else if(bg.getFirstBreedingNumber()!=null && lg.getFirstBreedingNumber()!=null &&
+                                    bg.getFirstBreedingNumber().equals(lg.getFirstBreedingNumber())){
+
+                        }else {
+                            list2.add(new LocalGoat(bg));
+                        }
+                    }
                 }
             }
 
 
-            for(Goat g : goatsFromBook){
+            /*for(Goat g : goatsFromBook){
                 GoatFromVetIs tgv = null;
                 List<GoatFromVetIs> lgv = dbHelper.getDaoGoatFromVetIs().queryBuilder().selectColumns("firstVeterinaryNumber")
                         .where().eq("firstVeterinaryNumber", g.getFirstVeterinaryNumber()).query();
@@ -791,7 +806,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                         ){
                     list6.add(g);
                 }
-            }
+            }*/
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -800,18 +815,18 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
     private void sortLists(){
         sortSingleList(list1);
         sortSingleList(list2);
-        sortSingleList(list3);
+        /*sortSingleList(list3);
         sortSingleList(list4);
         sortSingleList(list5);
         sortSingleList(list6);
-        sortSingleList(list7);
+        sortSingleList(list7);*/
     }
 
-    private void sortSingleList(List<Goat> list){
-        Collections.sort(list, new Comparator<Goat>() {
+    private void sortSingleList(List<LocalGoat> list){
+        Collections.sort(list, new Comparator<LocalGoat>() {
 
             @Override
-            public int compare(Goat goat, Goat goat2) {
+            public int compare(LocalGoat goat, LocalGoat goat2) {
 
                 int goat1years = 0;
                 int goat2years = 0;
@@ -935,15 +950,13 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                     }
                 }
 
-                List<Goat> list = listsByFarm.get(farm1.getId());
+                List<LocalGoat> list = listsByFarm.get(farm1.getId());
                 if (list==null) {
-                    listsByFarm.put(farm1.getId(), list = new ArrayList<Goat>());
+                    listsByFarm.put(farm1.getId(), list = new ArrayList<LocalGoat>());
                 }
                 if(goat.getFarm()!=null) goat.getFarm().setLst_visitProtocol(null);
                 goat.setLocalVisitProtocol(null);
-                /*JSONObject gj = Globals.objectToJson(goat);
-                list.add(Globals.jsonToObject(gj, Goat.class));*/
-                list.add(new Goat(goat));
+                list.add(goat);
             }
         /*} catch (JSONException e) {
             e.printStackTrace();
@@ -974,27 +987,21 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             final boolean[] success = {false};
 
             listDataHeader = new ArrayList<String>();
-            listDataHeader.add("Налични кози без промени");
+            listDataHeader.add("Налични кози");
+            listDataHeader.add("Кози липсващи при проверка");
+            /*listDataHeader.add("Налични кози без промени");
             listDataHeader.add("Налични кози с променени ветеринарни марки, които се водят във ВетИС");
             listDataHeader.add("Кози с липсващи ветеринарни марки, които са вписани в родословна книга");
             listDataHeader.add("Нови кози с ветеринарни марки, които се водят във ВетИС");
             listDataHeader.add("Налични кози с ветеринарни марки, които не се водят във ВетИС");
-            listDataHeader.add("Кози, липсващи при проверка");
-            listDataHeader.add("Кози с особени случаи, за допълнителна проверка");
+            listDataHeader.add("Кози липсващи при проверка");
+            listDataHeader.add("Кози с особени случаи, за допълнителна проверка");*/
 
 
             //ArrayList<Goat> goatsToProcess = new ArrayList<Goat>();
             List<LocalGoat> localReadyforProcess = new ArrayList<LocalGoat>();
             if(isProtocolSynced){
                 try {
-                    /*List<LocalVisitProtocol> lvp1 = dbHelper.getDaoLocalVisitProtocol().queryBuilder()
-                            .where()
-                            .eq("real_id", mVisitProtocol.getId())
-                            .query();
-
-                    List<LocalVisitProtocol> lvp2 = dbHelper.getDaoLocalVisitProtocol().queryBuilder()
-                    .orderBy("dateLastUpdated", false).query();*/
-
                     localReadyforProcess = new ArrayList<LocalGoat>(
                             dbHelper.getDaoLocalVisitProtocol().queryBuilder()
                                     .where()
@@ -1002,13 +1009,6 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                                     .queryForFirst().getLst_localGoat()
                     );
 
-                    /*for(LocalGoat lg : localReadyforProces){
-                        lg.getFarm().setLst_visitProtocol(null);
-                        lg.setLocalVisitProtocol(null);
-                        goatsToProcess.add(Globals.jsonToObject(
-                                Globals.objectToJson(lg), Goat.class
-                        ));
-                    }*/
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -1035,75 +1035,34 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             }
             distributeLocalGoatsToListsByFarm(localReadyforProcess);
 
-            /*Iterator it = listsByFarm.entrySet().iterator();
-            try {
-                while (it.hasNext()) {
-                    Map.Entry pair = (Map.Entry) it.next();
-                    //System.out.println(pair.getKey() + " = " + pair.getValue());
-
-                    List<Goat> temp = listsByFarm.get(pair.getKey());
-                    for (Goat g : temp) {
-                        processGoatToLists(g);
-                    }
-                    Farm f = dbHelper.getDaoFarm().queryForId((Long) pair.getKey());
-                    f.setLst_visitProtocol(null);
-                    processForList6(temp, f);
-                    sortLists();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }*/
             if(listsByFarm.size()>0) {
                 try {
                     Map.Entry pair = (Map.Entry) listsByFarm.entrySet().iterator().next();
-                    List<Goat> temp = listsByFarm.get(pair.getKey());
-                    for (Goat g : temp) {
+                    List<LocalGoat> temp = listsByFarm.get(pair.getKey());
+                    /*for (Goat g : temp) {
                         processGoatToLists(g);
-                    }
+                    }*/
+                    list1.addAll(temp);
                     Farm f = dbHelper.getDaoFarm().queryForId((Long) pair.getKey());
                     f.setLst_visitProtocol(null);
-                    processForList6(temp, f);
+                    processForListMissing(temp, f);
                     sortLists();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
             }
 
-            listDataChild = new HashMap<String, List<Goat>>();
+            listDataChild = new HashMap<String, List<LocalGoat>>();
             listDataChild.put(listDataHeader.get(0), list1);
             listDataChild.put(listDataHeader.get(1), list2);
-            listDataChild.put(listDataHeader.get(2), list3);
+            /*listDataChild.put(listDataHeader.get(2), list3);
             listDataChild.put(listDataHeader.get(3), list4);
             listDataChild.put(listDataHeader.get(4), list5);
             listDataChild.put(listDataHeader.get(5), list6);
-            listDataChild.put(listDataHeader.get(6), list7);
+            listDataChild.put(listDataHeader.get(6), list7);*/
 
             vpGLEAdapter = new VisitProtocolGoatListExpandableAdapter(VisitProtocolGoatsListsActivity.this,
                     listDataHeader, listDataChild);
-
-            /*vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list1);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list2);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list3);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list4);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list5);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list6);
-            vpGLadapter.addSectionHeaderItem();
-            vpGLadapter.addAll(list7);
-            vpGLadapter.notifyDataSetChanged();
-            list1.clear();
-            list2.clear();
-            list3.clear();
-            list4.clear();
-            list5.clear();
-            list6.clear();
-            list7.clear();*/
 
             return success[0];
         }
@@ -1122,20 +1081,20 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             if(isProtocolSynced){
                 setTitle("Списък с " + (vpGLEAdapter.getChildrenCount(0)
                         +vpGLEAdapter.getChildrenCount(1)
-                        +vpGLEAdapter.getChildrenCount(2)
+                        /*+vpGLEAdapter.getChildrenCount(2)
                         +vpGLEAdapter.getChildrenCount(3)
                         +vpGLEAdapter.getChildrenCount(4)
                         +vpGLEAdapter.getChildrenCount(5)
-                        +vpGLEAdapter.getChildrenCount(6))
+                        +vpGLEAdapter.getChildrenCount(6)*/)
                         + " кози за Протокол за посещение от " + Globals.getDateShort(mVisitProtocol.getVisitDate()));
             }else {
                 setTitle("Списък с " + (vpGLEAdapter.getChildrenCount(0)
                         +vpGLEAdapter.getChildrenCount(1)
-                        +vpGLEAdapter.getChildrenCount(2)
+                        /*+vpGLEAdapter.getChildrenCount(2)
                         +vpGLEAdapter.getChildrenCount(3)
                         +vpGLEAdapter.getChildrenCount(4)
                         +vpGLEAdapter.getChildrenCount(5)
-                        +vpGLEAdapter.getChildrenCount(6))
+                        +vpGLEAdapter.getChildrenCount(6)*/)
                         + " кози за Протокол за посещение от " + Globals.getDateShort(mLocalVisitProtocol.getVisitDate()));
             }
             if(mProgressDialog.isShowing()){
