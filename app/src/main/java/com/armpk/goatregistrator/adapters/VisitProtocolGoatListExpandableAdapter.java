@@ -33,7 +33,7 @@ public class VisitProtocolGoatListExpandableAdapter  extends BaseExpandableListA
     }
 
     @Override
-    public Object getChild(int groupPosition, int childPosititon) {
+    public LocalGoat getChild(int groupPosition, int childPosititon) {
         return this._listDataChild.get(this._listDataHeader.get(groupPosition))
                 .get(childPosititon);
     }
@@ -61,6 +61,7 @@ public class VisitProtocolGoatListExpandableAdapter  extends BaseExpandableListA
             holder.textViewBreedNum2 = (TextView) view.findViewById(R.id.textBreedNum2);
             holder.textViewNewOld = (TextView) view.findViewById(R.id.textNewOld);
             holder.textViewGender = (TextView) view.findViewById(R.id.textGender);
+            holder.textVetIS = (TextView) view.findViewById(R.id.textVetIS);
             view.setTag(holder);
         } else {
             // the getTag returns the viewHolder object set as a tag to the view
@@ -118,7 +119,14 @@ public class VisitProtocolGoatListExpandableAdapter  extends BaseExpandableListA
                     holder.textViewGender.setText("Неизбран");
                 }
             }
-            //holder.linearHeader.setVisibility(View.GONE);
+
+            if (holder.textVetIS != null ){
+                if (goat.isInVetIS()) {
+                    holder.textVetIS.setText("ДА");
+                } else {
+                    holder.textVetIS.setText("НЕ");
+                }
+            }
         }
 
         return view;
@@ -181,7 +189,6 @@ public class VisitProtocolGoatListExpandableAdapter  extends BaseExpandableListA
         protected TextView textViewBreedNum2;
         protected TextView textViewNewOld;
         protected TextView textViewGender;
-        protected LinearLayout linearHeader;
-        protected TextView textHeaderTitle;
+        protected TextView textVetIS;
     }
 }

@@ -166,6 +166,7 @@
     <string name="add_second_farm">Добави втора ферма</string>
     <string name="text_show_goats_from_visit_protocol">Списък с кози от протокол</string>
     <string name="text_last_record">Последен запис</string>
+    <string name="text_in_vetis">Води се във ВетИС</string>
 
 
 </resources>

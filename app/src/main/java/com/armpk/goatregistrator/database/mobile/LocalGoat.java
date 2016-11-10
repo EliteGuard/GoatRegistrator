@@ -183,6 +183,8 @@ public class LocalGoat implements Serializable {
 	@DatabaseField (foreign = true, foreignAutoRefresh = true)
 	private transient LocalVisitProtocol localVisitProtocol;
 
+	private boolean isInVetIS = false;
+
 	public LocalGoat() { }
 
     public LocalGoat(Goat goat){
@@ -618,4 +620,11 @@ public class LocalGoat implements Serializable {
         this.localVisitProtocol = localVisitProtocol;
     }
 
+	public boolean isInVetIS() {
+		return isInVetIS;
+	}
+
+	public void setInVetIS(boolean inVetIS) {
+		isInVetIS = inVetIS;
+	}
 }

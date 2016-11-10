@@ -192,34 +192,6 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 vpGLEAdapter = new VisitProtocolGoatListExpandableAdapter(VisitProtocolGoatsListsActivity.this,
                         listDataHeader, listDataChild);
 
-                /*if(vpGLadapter!=null){
-                    vpGLadapter.clear();
-                    vpGLadapter.notifyDataSetChanged();
-                }
-
-                vpGLadapter = new VisitProtocolGoatsListsAdapter(VisitProtocolGoatsListsActivity.this, listG);
-                //vpGLadapter.addSectionHeaderItem();
-                vpGLadapter.addAll(list1);
-                vpGLadapter.addSectionHeaderItem();
-                vpGLadapter.addAll(list2);
-                vpGLadapter.addSectionHeaderItem();
-                vpGLadapter.addAll(list3);
-                vpGLadapter.addSectionHeaderItem();
-                vpGLadapter.addAll(list4);
-                vpGLadapter.addSectionHeaderItem();
-                vpGLadapter.addAll(list5);
-                vpGLadapter.addSectionHeaderItem();
-                vpGLadapter.addAll(list6);
-                vpGLadapter.addSectionHeaderItem();
-                vpGLadapter.addAll(list7);
-                vpGLadapter.notifyDataSetChanged();
-                list1.clear();
-                list2.clear();
-                list3.clear();
-                list4.clear();
-                list5.clear();
-                list6.clear();
-                list7.clear();*/
 
                 createTable(htmlDocument, f);
             }
@@ -275,11 +247,11 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         htmlDocument.append("Списък с ").append(
                 (vpGLEAdapter.getChildrenCount(0)
                         +vpGLEAdapter.getChildrenCount(1)
-                        +vpGLEAdapter.getChildrenCount(2)
+                        /*+vpGLEAdapter.getChildrenCount(2)
                         +vpGLEAdapter.getChildrenCount(3)
                         +vpGLEAdapter.getChildrenCount(4)
                         +vpGLEAdapter.getChildrenCount(5)
-                        +vpGLEAdapter.getChildrenCount(6))
+                        +vpGLEAdapter.getChildrenCount(6)*/)
         ).append(" кози за Протокол за посещение от ");
         if(isProtocolSynced) {
             htmlDocument.append(Globals.getDateShort(mVisitProtocol.getVisitDate()));
@@ -311,7 +283,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             htmlDocument.append("</tr>");
             for(int j=0; j<vpGLEAdapter.getChildrenCount(i); j++){
                 htmlDocument.append("<tr>");
-                htmlDocument.append(processGoat((Goat)vpGLEAdapter.getChild(i, j), counter, j));
+                htmlDocument.append(processGoat(vpGLEAdapter.getChild(i, j), counter, j));
                 htmlDocument.append("</tr>");
                 counter++;
             }
@@ -328,7 +300,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         htmlDocument.append("</table>");
     }
 
-    private String processGoat(Goat goat, int position, int subposition) {
+    private String processGoat(LocalGoat goat, int position, int subposition) {
         StringBuffer result = new StringBuffer();
 
         //column 1
@@ -403,7 +375,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         }
 
         //column 10
-        if(goat.getId() != null){
+        if(goat.getRealId() != null){
             result.append(createTableCell("Стара"));
         }else{
             result.append(createTableCell("Нова"));
@@ -424,6 +396,13 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             ));
         }else{
             result.append(createTableCell(""));
+        }
+
+        //column 13
+        if(goat.isInVetIS()){
+            result.append(createTableCell("ДА"));
+        }else{
+            result.append(createTableCell("НЕ"));
         }
 
 
@@ -577,6 +556,7 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         htmlDocument.append(createTableCell("Нова/Стара"));
         htmlDocument.append(createTableCell("No. и Сертификат"));
         htmlDocument.append(createTableCell("No. и Протокол за брак"));
+        htmlDocument.append(createTableCell("ВетИС"));
         htmlDocument.append("</tr>");
         htmlDocument.append("</thead>");
 
@@ -766,7 +746,70 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             gqb.join(fgqb);
             List<Goat> goatsFromBook = gqb.query();
 
-            for(Goat bg : goatsFromBook){
+            for(LocalGoat tg : goatsFromTablet){
+                for(Goat bg : goatsFromBook){
+                    if(bg.getFirstVeterinaryNumber()!=null && tg.getFirstVeterinaryNumber()!=null){
+                        String bgv1 = bg.getFirstVeterinaryNumber().trim();
+                        String tgv1 = tg.getFirstVeterinaryNumber().trim();
+                        if(bgv1.equals(tgv1)){
+                            goatsFromBook.remove(bg);
+                            break;
+                        }
+                    }
+                    if(bg.getFirstVeterinaryNumber()!=null && tg.getSecondVeterinaryNumber()!=null){
+                        String bgv1 = bg.getFirstVeterinaryNumber().trim();
+                        String tgv2 = tg.getSecondVeterinaryNumber().trim();
+                        if(bgv1.equals(tgv2)){
+                            goatsFromBook.remove(bg);
+                            break;
+                        }
+                    }
+                    if(bg.getFirstBreedingNumber()!=null && tg.getFirstBreedingNumber()!=null){
+                        String bgb1 = bg.getFirstBreedingNumber().trim();
+                        String tgb1 = tg.getFirstBreedingNumber().trim();
+                        if(bgb1.equals(tgb1)){
+                            goatsFromBook.remove(bg);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            for(Goat g : goatsFromBook){
+                LocalGoat tlg = new LocalGoat(g);
+
+                QueryBuilder<GoatFromVetIs, Long> gvqb = dbHelper.getDaoGoatFromVetIs().queryBuilder();
+                gvqb.selectColumns("firstVeterinaryNumber", "secondVeterinaryNumber");
+
+                String gv1 = "";
+                String gv2 = "";
+                if(g.getFirstVeterinaryNumber()!=null) gv1 = g.getFirstVeterinaryNumber();
+                if(g.getSecondVeterinaryNumber()!=null) gv2 = g.getSecondVeterinaryNumber();
+
+                if(gv1.length()>0 && gv2.length()<1) {
+                    gvqb.where()
+                            .eq("firstVeterinaryNumber", g.getFirstVeterinaryNumber());
+                }else if(gv1.length()<1 && gv2.length()>0){
+                    gvqb.where()
+                            .eq("secondVeterinaryNumber", g.getSecondVeterinaryNumber());
+                }else if(gv1.length()>0 && gv2.length()>0){
+                    gvqb.where()
+                            .eq("firstVeterinaryNumber", g.getFirstVeterinaryNumber())
+                            .or()
+                            .eq("secondVeterinaryNumber", g.getSecondVeterinaryNumber());
+                }
+
+                List<GoatFromVetIs> lgv = gvqb.query();
+                GoatFromVetIs tgv = null;
+                if(lgv.size()>0) {
+                    tgv = lgv.get(0);
+                    tlg.setInVetIS(true);
+                }
+
+                list2.add(tlg);
+            }
+
+            /*for(Goat bg : goatsFromBook){
                 List<GoatFromVetIs> lgv = dbHelper.getDaoGoatFromVetIs().queryBuilder().selectColumns("firstVeterinaryNumber", "secondVeterinaryNumber")
                         .where()
                         .eq("firstVeterinaryNumber", bg.getFirstVeterinaryNumber())
@@ -789,22 +832,6 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                             list2.add(new LocalGoat(bg));
                         }
                     }
-                }
-            }
-
-
-            /*for(Goat g : goatsFromBook){
-                GoatFromVetIs tgv = null;
-                List<GoatFromVetIs> lgv = dbHelper.getDaoGoatFromVetIs().queryBuilder().selectColumns("firstVeterinaryNumber")
-                        .where().eq("firstVeterinaryNumber", g.getFirstVeterinaryNumber()).query();
-                if(lgv.size()==1) tgv = lgv.get(0);
-
-                if(g.getAppliedForSelectionControlYear()!=null){
-                    list6.add(g);
-                }else if(g.getAppliedForSelectionControlYear()==null
-                        && tgv!=null && g.getFirstVeterinaryNumber().equals(tgv.getFirstVeterinaryNumber())
-                        ){
-                    list6.add(g);
                 }
             }*/
         } catch (SQLException e) {
@@ -875,21 +902,25 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 }*/
 
                 int result = 0;
-                /*result = (int) (goat1farmId - goat2farmId);
-                if (result == 0) {*/
+
+
+
+                //if (result == 0) {
                     if (goat.getBreed() != null && goat2.getBreed() != null) {
                         result = goat.getBreed().getBreedName().compareTo(goat2.getBreed().getBreedName());
                     }
                 //}
                 if (result == 0) {
-                    //result = this.getChange().compareTo(quote.getChange());
-
-                        result = goatAFSCY-goat2AFSCY;
+                    result = goatAFSCY-goat2AFSCY;
                 }
                 if (result == 0) {
                     //result = this.getPercentChange().compareTo(quote.getPercentChange());
                     result = goat1years - goat2years;
                 }
+                /*if (result == 0) {
+                    result = Boolean.compare(goat.isInVetIS(),goat2.isInVetIS());
+                }*/
+
                 return result;
             }
         });
@@ -963,6 +994,113 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
         }*/
     }
 
+    private List<String> distributeGoatsToSpecialLists(){
+        List<String> results = new ArrayList<String>();
+        String resultList1 = "НАЛИЧНИ КОЗИ\n";
+        String resultList2 = "КОЗИ ЛИПСВАЩИ ПРИ ПРОВЕРКА\n";
+
+
+        HashMap<String, List<LocalGoat>> goatsNumberByBreed = new HashMap<String, List<LocalGoat>>();
+        HashMap<String, List<LocalGoat>> kidsNumberByBreed = new HashMap<String, List<LocalGoat>>();
+        HashMap<String, List<LocalGoat>> maleNumberByBreed = new HashMap<String, List<LocalGoat>>();
+        HashMap<String, List<LocalGoat>> missingGoatsNumberByBreed = new HashMap<String, List<LocalGoat>>();
+        HashMap<String, List<LocalGoat>> missingKidsNumberByBreed = new HashMap<String, List<LocalGoat>>();
+
+
+
+        for(LocalGoat lg : list1){
+            if(lg.getBreed()!=null && lg.getBirthDate()!=null && lg.getSex()!=null) {
+                Calendar bc = new GregorianCalendar();
+                bc.setTimeInMillis(lg.getBirthDate().getTime());
+                int age = now.get(Calendar.YEAR) - bc.get(Calendar.YEAR);
+
+                List<LocalGoat> listGoats = goatsNumberByBreed.get(lg.getBreed().getBreedName());
+                if (listGoats == null) {
+                    goatsNumberByBreed.put(lg.getBreed().getBreedName(), listGoats = new ArrayList<LocalGoat>());
+                }
+                listGoats.add(lg);
+
+                if(age<1){
+                    List<LocalGoat> listKids = kidsNumberByBreed.get(lg.getBreed().getBreedName());
+                    if (listKids == null) {
+                        kidsNumberByBreed.put(lg.getBreed().getBreedName(), listKids = new ArrayList<LocalGoat>());
+                    }
+                    listKids.add(lg);
+                }
+                if(lg.getSex()==Sex.MALE){
+                    List<LocalGoat> listMales = maleNumberByBreed.get(lg.getBreed().getBreedName());
+                    if (listMales == null) {
+                        maleNumberByBreed.put(lg.getBreed().getBreedName(), listMales = new ArrayList<LocalGoat>());
+                    }
+                    listMales.add(lg);
+                }
+            }
+        }
+        Iterator it = goatsNumberByBreed.entrySet().iterator();
+        resultList1 += "\nКози по породи: \n";
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            List<LocalGoat> temp = goatsNumberByBreed.get(pair.getKey());
+            resultList1 += pair.getKey().toString()+ "->" +temp.size()+"\n";
+        }
+        it = kidsNumberByBreed.entrySet().iterator();
+        resultList1 += "\nЯрета по породи: \n";
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            List<LocalGoat> temp = kidsNumberByBreed.get(pair.getKey());
+            resultList1 += pair.getKey().toString()+ "->" +temp.size()+"\n";
+        }
+        it = maleNumberByBreed.entrySet().iterator();
+        resultList1 += "\nМъжки(вкл. ярета) по породи: \n";
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            List<LocalGoat> temp = maleNumberByBreed.get(pair.getKey());
+            resultList1 += pair.getKey().toString()+ "->" +temp.size()+"\n";
+        }
+        results.add(resultList1);
+
+
+
+        for(LocalGoat lg : list2){
+            if(lg.getBreed()!=null && lg.getBirthDate()!=null && lg.getSex()!=null) {
+                Calendar bc = new GregorianCalendar();
+                bc.setTimeInMillis(lg.getBirthDate().getTime());
+                int age = now.get(Calendar.YEAR) - bc.get(Calendar.YEAR);
+
+                List<LocalGoat> listGoats = missingGoatsNumberByBreed.get(lg.getBreed().getBreedName());
+                if (listGoats == null) {
+                    missingGoatsNumberByBreed.put(lg.getBreed().getBreedName(), listGoats = new ArrayList<LocalGoat>());
+                }
+                listGoats.add(lg);
+
+                if(age<1){
+                    List<LocalGoat> listKids = missingKidsNumberByBreed.get(lg.getBreed().getBreedName());
+                    if (listKids == null) {
+                        missingKidsNumberByBreed.put(lg.getBreed().getBreedName(), listKids = new ArrayList<LocalGoat>());
+                    }
+                    listKids.add(lg);
+                }
+            }
+        }
+        it = missingGoatsNumberByBreed.entrySet().iterator();
+        resultList2 += "\nКози по породи: \n";
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            List<LocalGoat> temp = missingGoatsNumberByBreed.get(pair.getKey());
+            resultList2 += pair.getKey().toString()+ "->" +temp.size()+"\n";
+        }
+        it = missingKidsNumberByBreed.entrySet().iterator();
+        resultList2 += "\nЯрета по породи: \n";
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            List<LocalGoat> temp = missingKidsNumberByBreed.get(pair.getKey());
+            resultList2 += pair.getKey().toString()+ "->" +temp.size()+"\n";
+        }
+        results.add(resultList2);
+
+        return results;
+    }
+
     private class InitActivity extends AsyncTask<Void, Integer, Boolean> {
         private Context mContext;
         private ProgressDialog mProgressDialog;
@@ -987,9 +1125,9 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
             final boolean[] success = {false};
 
             listDataHeader = new ArrayList<String>();
-            listDataHeader.add("Налични кози");
+            /*listDataHeader.add("Налични кози");
             listDataHeader.add("Кози липсващи при проверка");
-            /*listDataHeader.add("Налични кози без промени");
+            listDataHeader.add("Налични кози без промени");
             listDataHeader.add("Налични кози с променени ветеринарни марки, които се водят във ВетИС");
             listDataHeader.add("Кози с липсващи ветеринарни марки, които са вписани в родословна книга");
             listDataHeader.add("Нови кози с ветеринарни марки, които се водят във ВетИС");
@@ -1039,10 +1177,39 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 try {
                     Map.Entry pair = (Map.Entry) listsByFarm.entrySet().iterator().next();
                     List<LocalGoat> temp = listsByFarm.get(pair.getKey());
-                    /*for (Goat g : temp) {
-                        processGoatToLists(g);
-                    }*/
-                    list1.addAll(temp);
+                    for (LocalGoat tlg : temp) {
+                        //LocalGoat tlg = new LocalGoat(g);
+
+                        QueryBuilder<GoatFromVetIs, Long> gvqb = dbHelper.getDaoGoatFromVetIs().queryBuilder();
+                        gvqb.selectColumns("firstVeterinaryNumber", "secondVeterinaryNumber");
+
+                        String gv1 = "";
+                        String gv2 = "";
+                        if(tlg.getFirstVeterinaryNumber()!=null) gv1 = tlg.getFirstVeterinaryNumber();
+                        if(tlg.getSecondVeterinaryNumber()!=null) gv2 = tlg.getSecondVeterinaryNumber();
+
+                        if(gv1.length()>0 && gv2.length()<1) {
+                            gvqb.where()
+                                    .eq("firstVeterinaryNumber", tlg.getFirstVeterinaryNumber());
+                        }else if(gv1.length()<1 && gv2.length()>0){
+                            gvqb.where()
+                                    .eq("secondVeterinaryNumber", tlg.getSecondVeterinaryNumber());
+                        }else if(gv1.length()>0 && gv2.length()>0){
+                            gvqb.where()
+                                    .eq("firstVeterinaryNumber", tlg.getFirstVeterinaryNumber())
+                                    .or()
+                                    .eq("secondVeterinaryNumber", tlg.getSecondVeterinaryNumber());
+                        }
+
+                        List<GoatFromVetIs> lgv = gvqb.query();
+                        GoatFromVetIs tgv = null;
+                        if(lgv.size()>0) {
+                            tgv = lgv.get(0);
+                            tlg.setInVetIS(true);
+                        }
+                        list1.add(tlg);
+                    }
+                    //list1.addAll(temp);
                     Farm f = dbHelper.getDaoFarm().queryForId((Long) pair.getKey());
                     f.setLst_visitProtocol(null);
                     processForListMissing(temp, f);
@@ -1051,6 +1218,8 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
+
+            listDataHeader = distributeGoatsToSpecialLists();
 
             listDataChild = new HashMap<String, List<LocalGoat>>();
             listDataChild.put(listDataHeader.get(0), list1);

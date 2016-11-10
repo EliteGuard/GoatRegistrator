@@ -11,7 +11,7 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:weightSum="37"
+        android:weightSum="40"
         android:showDividers="middle"
         android:divider="@drawable/divider_vertical"
         android:background="@android:color/white"
@@ -87,6 +87,14 @@
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:text="@string/text_gender"
+            android:gravity="center"/>
+        <TextView
+            android:id="@+id/textVetIS"
+            android:layout_width="0dp"
+            android:layout_weight="3"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/text_in_vetis"
             android:gravity="center"/>
     </LinearLayout>
 

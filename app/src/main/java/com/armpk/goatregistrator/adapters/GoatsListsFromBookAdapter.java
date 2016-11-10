@@ -59,6 +59,7 @@ public class GoatsListsFromBookAdapter extends ArrayAdapter<Goat> {
             holder.textViewBreedNum2 = (TextView) view.findViewById(R.id.textBreedNum2);
             holder.textViewNewOld = (TextView) view.findViewById(R.id.textNewOld);
             holder.textViewGender = (TextView) view.findViewById(R.id.textGender);
+            holder.textVetIS = (TextView) view.findViewById(R.id.textVetIS);
             view.setTag(holder);
         } else {
             // the getTag returns the viewHolder object set as a tag to the view
@@ -134,6 +135,7 @@ public class GoatsListsFromBookAdapter extends ArrayAdapter<Goat> {
         protected TextView textViewBreedNum2;
         protected TextView textViewNewOld;
         protected TextView textViewGender;
+        protected TextView textVetIS;
         protected LinearLayout linearHeader;
         protected TextView textHeaderTitle;
     }
