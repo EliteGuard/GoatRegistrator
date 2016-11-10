@@ -779,24 +779,22 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 LocalGoat tlg = new LocalGoat(g);
 
                 QueryBuilder<GoatFromVetIs, Long> gvqb = dbHelper.getDaoGoatFromVetIs().queryBuilder();
-                gvqb.selectColumns("firstVeterinaryNumber", "secondVeterinaryNumber");
+                //gvqb.selectColumns("firstVeterinaryNumber", "secondVeterinaryNumber");
+
+                if(g.getFirstVeterinaryNumber().contains("953551")){
+                    Log.d("", "");
+                }
 
                 String gv1 = "";
                 String gv2 = "";
-                if(g.getFirstVeterinaryNumber()!=null) gv1 = g.getFirstVeterinaryNumber();
-                if(g.getSecondVeterinaryNumber()!=null) gv2 = g.getSecondVeterinaryNumber();
+                if(g.getFirstVeterinaryNumber()!=null) gv1 = g.getFirstVeterinaryNumber().trim();
+                if(g.getSecondVeterinaryNumber()!=null) gv2 = g.getSecondVeterinaryNumber().trim();
 
-                if(gv1.length()>0 && gv2.length()<1) {
+                if(gv1.length()>0){
                     gvqb.where()
-                            .eq("firstVeterinaryNumber", g.getFirstVeterinaryNumber());
-                }else if(gv1.length()<1 && gv2.length()>0){
-                    gvqb.where()
-                            .eq("secondVeterinaryNumber", g.getSecondVeterinaryNumber());
-                }else if(gv1.length()>0 && gv2.length()>0){
-                    gvqb.where()
-                            .eq("firstVeterinaryNumber", g.getFirstVeterinaryNumber())
+                            .eq("firstVeterinaryNumber", gv1)
                             .or()
-                            .eq("secondVeterinaryNumber", g.getSecondVeterinaryNumber());
+                            .eq("secondVeterinaryNumber", gv1);
                 }
 
                 List<GoatFromVetIs> lgv = gvqb.query();
@@ -809,31 +807,6 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                 list2.add(tlg);
             }
 
-            /*for(Goat bg : goatsFromBook){
-                List<GoatFromVetIs> lgv = dbHelper.getDaoGoatFromVetIs().queryBuilder().selectColumns("firstVeterinaryNumber", "secondVeterinaryNumber")
-                        .where()
-                        .eq("firstVeterinaryNumber", bg.getFirstVeterinaryNumber())
-                        .or()
-                        .eq("secondVeterinaryNumber", bg.getSecondVeterinaryNumber()).query();
-                GoatFromVetIs tgv = null;
-                if(lgv.size()==1) tgv = lgv.get(0);
-
-                if(tgv==null){
-                    list2.add(new LocalGoat(bg));
-                }else{
-                    for(LocalGoat lg : goatsFromTablet){
-                        if(bg.getFirstVeterinaryNumber()!=null && lg.getFirstVeterinaryNumber()!=null &&
-                                bg.getFirstVeterinaryNumber().equals(lg.getFirstVeterinaryNumber())){
-
-                        }else if(bg.getFirstBreedingNumber()!=null && lg.getFirstBreedingNumber()!=null &&
-                                    bg.getFirstBreedingNumber().equals(lg.getFirstBreedingNumber())){
-
-                        }else {
-                            list2.add(new LocalGoat(bg));
-                        }
-                    }
-                }
-            }*/
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -1181,25 +1154,20 @@ public class VisitProtocolGoatsListsActivity extends AppCompatActivity {
                         //LocalGoat tlg = new LocalGoat(g);
 
                         QueryBuilder<GoatFromVetIs, Long> gvqb = dbHelper.getDaoGoatFromVetIs().queryBuilder();
-                        gvqb.selectColumns("firstVeterinaryNumber", "secondVeterinaryNumber");
+                        //gvqb.selectColumns("firstVeterinaryNumber", "secondVeterinaryNumber");
 
                         String gv1 = "";
                         String gv2 = "";
                         if(tlg.getFirstVeterinaryNumber()!=null) gv1 = tlg.getFirstVeterinaryNumber();
                         if(tlg.getSecondVeterinaryNumber()!=null) gv2 = tlg.getSecondVeterinaryNumber();
 
-                        if(gv1.length()>0 && gv2.length()<1) {
+                        if(gv1.length()>0){
                             gvqb.where()
-                                    .eq("firstVeterinaryNumber", tlg.getFirstVeterinaryNumber());
-                        }else if(gv1.length()<1 && gv2.length()>0){
-                            gvqb.where()
-                                    .eq("secondVeterinaryNumber", tlg.getSecondVeterinaryNumber());
-                        }else if(gv1.length()>0 && gv2.length()>0){
-                            gvqb.where()
-                                    .eq("firstVeterinaryNumber", tlg.getFirstVeterinaryNumber())
+                                    .eq("firstVeterinaryNumber", gv1)
                                     .or()
-                                    .eq("secondVeterinaryNumber", tlg.getSecondVeterinaryNumber());
+                                    .eq("secondVeterinaryNumber", gv1);
                         }
+
 
                         List<GoatFromVetIs> lgv = gvqb.query();
                         GoatFromVetIs tgv = null;
