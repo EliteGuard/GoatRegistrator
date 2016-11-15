@@ -137,7 +137,7 @@ public class SynchronizeVisitProtocols extends AsyncTask<Void, Integer, Boolean>
             mProgressDialog.cancel();
         }
         if(success){
-            Toast.makeText(mContext, "Успешно актуализиране на протоколите за посещение!", Toast.LENGTH_LONG).show();
+            //Toast.makeText(mContext, "Успешно актуализиране на протоколите за посещение!", Toast.LENGTH_LONG).show();
             Globals.savePreferences(Globals.SYNC_VISIT_PROTOCOLS_LAST_DATE, System.currentTimeMillis(), mContext);
         }else{
             Toast.makeText(mContext, "Възникна грешка...", Toast.LENGTH_LONG).show();

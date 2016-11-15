@@ -125,7 +125,7 @@ public class SynchronizeHerdsByRange extends AsyncTask<Void, Integer, Integer> {
         }
 
         if(success==1){
-            Toast.makeText(mContext, "Успешно актуализиране на стада!", Toast.LENGTH_LONG).show();
+            //Toast.makeText(mContext, "Успешно актуализиране на стада!", Toast.LENGTH_LONG).show();
             //SharedPreferences sp = mContext.getSharedPreferences(mContext.getPackageName(), Context.MODE_PRIVATE);
             Globals.savePreferences(Globals.SYNC_FARMS_LAST_DATE, System.currentTimeMillis(), mContext);
         }else if(success == 0){

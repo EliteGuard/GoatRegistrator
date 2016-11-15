@@ -121,7 +121,7 @@ public class SynchronizeFarms extends AsyncTask<Void, Integer, Boolean> {
             mProgressDialog.cancel();
         }
         if(success){
-            Toast.makeText(mContext, "Успешно актуализиране на ферми!", Toast.LENGTH_LONG).show();
+            //Toast.makeText(mContext, "Успешно актуализиране на ферми!", Toast.LENGTH_LONG).show();
             //SharedPreferences sp = mContext.getSharedPreferences(mContext.getPackageName(), Context.MODE_PRIVATE);
             Globals.savePreferences(Globals.SYNC_FARMS_LAST_DATE, System.currentTimeMillis(), mContext);
         }else{

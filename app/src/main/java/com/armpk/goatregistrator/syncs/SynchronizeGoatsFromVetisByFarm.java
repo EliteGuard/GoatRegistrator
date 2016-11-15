@@ -38,7 +38,7 @@ public class SynchronizeGoatsFromVetisByFarm extends AsyncTask<Void, Integer, Bo
 
     @Override
     protected void onPreExecute() {
-        mProgressDialog.setMessage("Синхронизиране на кози от ВетИС");
+        //mProgressDialog.setMessage("Синхронизиране на кози от ВетИС");
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mProgressDialog.setIndeterminate(false);
         mProgressDialog.setCancelable(false);
@@ -119,13 +119,17 @@ public class SynchronizeGoatsFromVetisByFarm extends AsyncTask<Void, Integer, Bo
             mProgressDialog.cancel();
         }
         if(success){
-            Toast.makeText(mContext, "Успешно актуализиране на кози от ВетИС!", Toast.LENGTH_LONG).show();
+            //Toast.makeText(mContext, "Успешно актуализиране на кози от ВетИС!", Toast.LENGTH_LONG).show();
             //SharedPreferences sp = mContext.getSharedPreferences(mContext.getPackageName(), Context.MODE_PRIVATE);
             Globals.savePreferences(Globals.SYNC_FARMS_LAST_DATE, System.currentTimeMillis(), mContext);
         }else{
             Toast.makeText(mContext, "Възникна грешка...", Toast.LENGTH_LONG).show();
         }
         mGoatsFromVetisByFarmSynchronizeListener.onGoatsFromVetisByFarmSynchronizeFinished(success);
+    }
+
+    public void setMessage(String msg){
+        mProgressDialog.setMessage(msg);
     }
 
     public interface OnGoatsFromVetisByFarmSynchronize{

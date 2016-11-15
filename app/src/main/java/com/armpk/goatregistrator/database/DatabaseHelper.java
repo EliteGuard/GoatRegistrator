@@ -961,7 +961,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper implements ApplyUpda
             Herd herd = Globals.jsonToObject(herdJson, Herd.class);
             if(herd!=null) {
                 List<Farm> currentFarms = new ArrayList<Farm>();
-                JSONArray farmsJson = herdJson.getJSONArray("lst_farms");
+                JSONArray farmsJson = herdJson.optJSONArray("lst_farms");
                 if (farmsJson != null) {
                     for (int i = 0; i < farmsJson.length(); i++) {
                         Farm f = Globals.jsonToObject(new JSONObject(farmsJson.get(i).toString()), Farm.class);

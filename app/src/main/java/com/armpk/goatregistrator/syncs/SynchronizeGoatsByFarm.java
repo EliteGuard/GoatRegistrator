@@ -61,7 +61,7 @@ public class SynchronizeGoatsByFarm extends AsyncTask<Void, Integer, Boolean>{
 
     @Override
     protected void onPreExecute() {
-        mProgressDialog.setMessage("Синхронизиране на кози по ферми");
+        //mProgressDialog.setMessage("Синхронизиране на кози по ферми");
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mProgressDialog.setIndeterminate(false);
         mProgressDialog.setCancelable(false);
@@ -101,7 +101,9 @@ public class SynchronizeGoatsByFarm extends AsyncTask<Void, Integer, Boolean>{
                     dbHelper.getDaoGoat().delete(fg.getGoat());
                 }
                 //DeleteBuilder<FarmGoat, Long> dbFG = dbHelper.getDaoFarmGoat().deleteBuilder();
-                dbHelper.getDaoFarmGoat().deleteBuilder().where().eq("farm_id", mFarm.getId()).query();
+                DeleteBuilder<FarmGoat, Long> dbQb= dbHelper.getDaoFarmGoat().deleteBuilder();
+                dbQb.where().eq("farm_id", mFarm.getId());
+                dbQb.delete();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -255,13 +257,17 @@ public class SynchronizeGoatsByFarm extends AsyncTask<Void, Integer, Boolean>{
             mProgressDialog.cancel();
         }
         if(success){
-            Toast.makeText(mContext, "Успешно актуализиране на кози по ферма!", Toast.LENGTH_LONG).show();
+            //Toast.makeText(mContext, "Успешно актуализиране на кози по ферма!", Toast.LENGTH_LONG).show();
             //SharedPreferences sp = mContext.getSharedPreferences(mContext.getPackageName(), Context.MODE_PRIVATE);
             Globals.savePreferences(Globals.SYNC_FARMS_LAST_DATE, System.currentTimeMillis(), mContext);
         }else{
             Toast.makeText(mContext, "Възникна грешка...", Toast.LENGTH_LONG).show();
         }
         mGoatsByFarmSynchronizeListener.onGoatsByFarmSynchronizeFinished(success);
+    }
+
+    public void setMessage(String msg){
+        mProgressDialog.setMessage(msg);
     }
 
     public interface OnGoatsByFarmSynchronize{

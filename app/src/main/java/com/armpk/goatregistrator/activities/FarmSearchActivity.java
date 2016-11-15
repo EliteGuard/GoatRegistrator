@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Handler;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -59,6 +61,7 @@ public class FarmSearchActivity extends AppCompatActivity implements
         SynchronizeGoatsFromVetisByFarm.OnGoatsFromVetisByFarmSynchronize, SynchronizeHerdsByFarm.OnHerdByFarmSynchronize, SynchronizeVisitActivities.OnVisitActivitySynchronize, SynchronizeExteriorMarks.OnExteriorMarkSynchronize {
 
     private ListView listViewFarmResults;
+    private Button mButtonSyncAllFarms;
     private FarmSearchResultAdapter adapterFarmResults;
     private DatabaseHelper dbHelper;
     private List<Farm> listFarms;
@@ -70,6 +73,9 @@ public class FarmSearchActivity extends AppCompatActivity implements
     public static final int HERD_PER_PAGE = 20;
     public static int pageCounter = 0;
 
+    private int farmCounter = 0;
+    private boolean fullSync = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +86,16 @@ public class FarmSearchActivity extends AppCompatActivity implements
         mTextLastSync = (TextView)findViewById(R.id.text_last_sync);
         listViewFarmResults = (ListView)findViewById(R.id.list_results);
         registerForContextMenu(listViewFarmResults);
+        mButtonSyncAllFarms = (Button)findViewById(R.id.btn_sync_all_farms);
+        mButtonSyncAllFarms.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fullSync = true;
+                RestConnection mRestFarms = new RestConnection(FarmSearchActivity.this, RestConnection.DataType.FARMS, FarmSearchActivity.this);
+                mRestFarms.setAction(RestConnection.Action.GET);
+                mRestFarms.execute((Void) null);
+            }
+        });
 
         AlertDialog.Builder alert = new AlertDialog.Builder(FarmSearchActivity.this);
         alert.setTitle("Внимание!!!");
@@ -154,9 +170,9 @@ public class FarmSearchActivity extends AppCompatActivity implements
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
             case R.id.create_protocol:
-                Intent visitProtocolAddActivity = new Intent(this, VisitProtocolsAddActivity.class);
+                /*Intent visitProtocolAddActivity = new Intent(this, VisitProtocolsAddActivity.class);
                 startActivity(visitProtocolAddActivity);
-                finish();
+                finish();*/
                 return true;
             case R.id.sync_goats:
                 mFarmToSync = (Farm) listViewFarmResults.getAdapter().getItem(info.position);
@@ -262,8 +278,26 @@ public class FarmSearchActivity extends AppCompatActivity implements
                 RestConnection.closeProgressDialog();
             }
         }else{
-            RestConnection.closeProgressDialog();
-            processFarmSyncResult(false);
+            if(fullSync){
+                RestConnection.setStaticMessage("Няма намерени данни за ферма: \n"+mFarmToSync.getCompanyName()
+                        +"\nМоля проверете системата и опитайте отново!");
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        RestConnection.closeProgressDialog();
+                        farmCounter++;
+                        if(farmCounter<listViewFarmResults.getAdapter().getCount()) {
+                            mFarmToSync = (Farm) listViewFarmResults.getAdapter().getItem(farmCounter);
+                            getHerdsByFarm(mFarmToSync);
+                        }
+                    }
+                }, 2000);
+
+            }else {
+                RestConnection.closeProgressDialog();
+                processFarmSyncResult(false);
+            }
         }
     }
 
@@ -527,16 +561,32 @@ public class FarmSearchActivity extends AppCompatActivity implements
 
     private void processVisitActivitiesSyncResult(boolean success){
         mTextLastSync.setText(getString(R.string.text_last_sync_from_sc, Globals.getDateTime(mSharedPreferences.getLong(Globals.SYNC_FARMS_LAST_DATE, 0))));
-        if(success){
-            mTextLastSync.setBackgroundColor(Color.GREEN);
+
+        if(!fullSync) {
+            if (success) {
+                mTextLastSync.setBackgroundColor(Color.GREEN);
+            } else {
+                mTextLastSync.setBackgroundColor(Color.YELLOW);
+            }
         }else{
-            mTextLastSync.setBackgroundColor(Color.YELLOW);
+            if (success) {
+                mFarmToSync = (Farm) listViewFarmResults.getAdapter().getItem(farmCounter);
+                getHerdsByFarm(mFarmToSync);
+            } else {
+                mTextLastSync.setBackgroundColor(Color.YELLOW);
+            }
         }
     }
 
     private void getGoatsByFarm(Farm farm){
         RestConnection mRestGoatsByFarm = new RestConnection(this, RestConnection.DataType.GOATSBYFARM, this);
         mRestGoatsByFarm.setAction(RestConnection.Action.POST);
+        if(fullSync) {
+            mRestGoatsByFarm.setMessage("Сваляне на кози във ферма "+(farmCounter+1)+" от "+listViewFarmResults.getAdapter().getCount()
+                    +"\n"+farm.getCompanyName());
+        }else{
+            mRestGoatsByFarm.setMessage("Сваляне на кози във ферма");
+        }
         JSONObject farmId = new JSONObject();
         try {
             farmId.put("farmid", farm.getId());
@@ -550,6 +600,12 @@ public class FarmSearchActivity extends AppCompatActivity implements
     private void synchronizeGoatsByFarm(String result){
         RestConnection.closeProgressDialog();
         SynchronizeGoatsByFarm sg = new SynchronizeGoatsByFarm(FarmSearchActivity.this, result, mFarmToSync, dbHelper, this);
+        if(fullSync) {
+            sg.setMessage("Синхронизиране на кози във ферма "+(farmCounter+1)+" от "+listViewFarmResults.getAdapter().getCount()
+                    +"\n"+mFarmToSync.getCompanyName());
+        }else{
+            sg.setMessage("Синхронизиране на кози във ферма");
+        }
         sg.execute((Void) null);
     }
 
@@ -570,6 +626,11 @@ public class FarmSearchActivity extends AppCompatActivity implements
 
     private void getGoatsFromVetisByFarm(String farmId){
         RestConnection mRestGoatsFromVetisByFarm = new RestConnection(this, RestConnection.DataType.GOATVETISBYFARM, farmId, this);
+        if(fullSync){
+            mRestGoatsFromVetisByFarm.setMessage("Сваляне на кози от ВетИС във ферма "+(farmCounter+1)+" от "+listViewFarmResults.getAdapter().getCount());
+        }else{
+            mRestGoatsFromVetisByFarm.setMessage("Сваляне на кози от ВетИС");
+        }
         mRestGoatsFromVetisByFarm.setAction(RestConnection.Action.GET);
         mRestGoatsFromVetisByFarm.execute((Void) null);
     }
@@ -577,6 +638,11 @@ public class FarmSearchActivity extends AppCompatActivity implements
     private void synchronizeGoatsFromVetisByFarm(String result){
         RestConnection.closeProgressDialog();
         SynchronizeGoatsFromVetisByFarm sgfvs = new SynchronizeGoatsFromVetisByFarm(this, result, dbHelper, this);
+        if(fullSync) {
+            sgfvs.setMessage("Синхронизиране на кози от ВетИС във ферма "+(farmCounter+1)+" от "+listViewFarmResults.getAdapter().getCount());
+        }else{
+            sgfvs.setMessage("Синхронизиране на кози от ВетИС");
+        }
         sgfvs.execute((Void) null);
     }
 
@@ -587,10 +653,28 @@ public class FarmSearchActivity extends AppCompatActivity implements
 
     private void processGoatsFromVetisByFarmSyncResult(boolean success){
         mTextLastSync.setText(getString(R.string.text_last_sync_from_sc, Globals.getDateTime(mSharedPreferences.getLong(Globals.SYNC_FARMS_LAST_DATE, 0))));
-        if(success){
-            mTextLastSync.setBackgroundColor(Color.GREEN);
+
+        if(!fullSync) {
+            if (success) {
+                mTextLastSync.setBackgroundColor(Color.GREEN);
+            } else {
+                mTextLastSync.setBackgroundColor(Color.YELLOW);
+            }
         }else{
-            mTextLastSync.setBackgroundColor(Color.YELLOW);
+            if (success) {
+                farmCounter++;
+                if(farmCounter<listViewFarmResults.getAdapter().getCount()) {
+                    mFarmToSync = (Farm) listViewFarmResults.getAdapter().getItem(farmCounter);
+                    getHerdsByFarm(mFarmToSync);
+                }else{
+                    farmCounter = 0;
+                    fullSync = false;
+                    mTextLastSync.setBackgroundColor(Color.GREEN);
+                }
+            } else {
+                fullSync = false;
+                mTextLastSync.setBackgroundColor(Color.YELLOW);
+            }
         }
     }
 
